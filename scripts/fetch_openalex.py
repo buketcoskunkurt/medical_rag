@@ -34,7 +34,7 @@ def reconstruct_abstract(inv):
     return ' '.join(txt.split())
 
 
-def fetch(query, out_path: Path, retmax=200, per_page=50, sleep=0.2):
+def fetch(query, out_path: Path, retmax=200, per_page=50, sleep=0.2, overwrite=False):
     out_path.parent.mkdir(parents=True, exist_ok=True)
     written = 0
     cursor = '*'
@@ -77,6 +77,7 @@ def fetch(query, out_path: Path, retmax=200, per_page=50, sleep=0.2):
                 'url': item.get('id'),
                 'source': 'openalex',
             }
+            # open in append mode; caller may decide to overwrite prior to calling
             out_path.open('a', encoding='utf-8').write(json.dumps(rec, ensure_ascii=False) + '\n')
             written += 1
             if written >= retmax:
@@ -98,9 +99,15 @@ def main():
     p.add_argument('--retmax', type=int, default=200)
     p.add_argument('--per_page', type=int, default=50)
     p.add_argument('--out', default='data/raw/openalex.jsonl')
+    p.add_argument('--overwrite', action='store_true', help='Overwrite output file instead of appending')
     args = p.parse_args()
 
-    fetch(args.query, Path(args.out), retmax=args.retmax, per_page=args.per_page)
+    outp = Path(args.out)
+    if args.overwrite and outp.exists():
+        # truncate file before fetch to avoid appending
+        outp.open('w', encoding='utf-8').close()
+
+    fetch(args.query, outp, retmax=args.retmax, per_page=args.per_page, overwrite=args.overwrite)
 
 
 if __name__ == '__main__':

@@ -163,8 +163,21 @@ def main():
     })
 
     faiss.write_index(index, str(OUT_DIR / "index.faiss"))
-    meta.to_parquet(OUT_DIR / "meta.parquet", index=False)
-    print("[build_index] wrote: data/index.faiss, data/meta.parquet")
+    # Try writing parquet; if pyarrow/fastparquet are not installed, fall back
+    # to JSONL so the pipeline doesn't fail on machines without optional deps.
+    try:
+        meta.to_parquet(OUT_DIR / "meta.parquet", index=False)
+        print("[build_index] wrote: data/index.faiss, data/meta.parquet")
+    except Exception as e:
+        print("[build_index] parquet write failed (pyarrow/fastparquet missing?). Falling back to JSONL.")
+        try:
+            outjson = OUT_DIR / "meta.jsonl"
+            outjson.parent.mkdir(parents=True, exist_ok=True)
+            meta.to_json(outjson, orient='records', lines=True, force_ascii=False)
+            print(f"[build_index] wrote: data/index.faiss, {outjson}")
+        except Exception as e2:
+            print("[build_index] Failed to write fallback JSONL metadata:", e2)
+            raise
 
 if __name__ == "__main__":
     main()

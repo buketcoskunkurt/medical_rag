@@ -33,7 +33,7 @@ EMB_MODEL = os.getenv("EMB_MODEL", "dmis-lab/biobert-base-cased-v1.1")
 _hf = models.Transformer(EMB_MODEL)
 _pool = models.Pooling(_hf.get_word_embedding_dimension(), pooling_mode_mean_tokens=True)
 _embed_model = SentenceTransformer(modules=[_hf, _pool])
-
+ 
 # generator model (for future RAG / generation) - default to a BioGPT variant
 GENERATOR_MODEL = os.getenv("GENERATOR_MODEL", "microsoft/biogpt")
 
@@ -42,7 +42,12 @@ MAX_K = 20
 # Cross-encoder reranker (optional but improves top-k quality)
 CROSS_ENCODER_MODEL = os.getenv("CROSS_ENCODER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
 _cross_encoder = CrossEncoder(CROSS_ENCODER_MODEL)
-
+# reranker weight (alpha) controls contribution of cross-encoder vs FAISS score
+RERANK_ALPHA = float(os.getenv("RERANK_ALPHA", "0.6"))
+# top_n multiplier controls how many FAISS candidates to prefetch before reranking
+TOPN_MULT = int(os.getenv("TOPN_MULT", "20"))
+# absolute cap for top_n
+TOPN_CAP = int(os.getenv("TOPN_CAP", "500"))
 # ======================================================================
 #                        INDEX & META YÜKLEME
 # ======================================================================
@@ -64,6 +69,20 @@ if not os.path.exists(META_PATH):
 # Parquet -> list[dict]
 meta_df = pd.read_parquet(META_PATH)
 meta_data = meta_df.to_dict(orient="records")
+
+# precompute neighbors map: prefix -> list of (chunk_idx, text)
+_neighbors_map = {}
+for m in meta_data:
+    mid = str(m.get("id", ""))
+    if "_" in mid:
+        prefix = mid.rpartition("_")[0]
+        try:
+            idx = int(mid.split("_")[-1])
+        except Exception:
+            continue
+        _neighbors_map.setdefault(prefix, []).append((idx, m.get("text", "")))
+for k in _neighbors_map:
+    _neighbors_map[k].sort()
 
 # ======================================================================
 #                           FASTAPI MODEL
@@ -140,7 +159,7 @@ def pick_snippet(doc: dict) -> str:
                 return False
 
             if looks_broken(s):
-                # Try to expand snippet by locating neighboring chunks with same base id
+                # Try to expand snippet using precomputed neighbors map
                 _id = str(doc.get("id", ""))
                 if "_" in _id:
                     prefix, _, suffix = _id.rpartition("_")
@@ -149,25 +168,18 @@ def pick_snippet(doc: dict) -> str:
                     except Exception:
                         cur_idx = None
                     if cur_idx is not None:
-                        # collect all chunks for this doc
-                        neighbors = []
-                        for m in meta_data:
-                            mid = str(m.get("id", ""))
-                            if mid.startswith(prefix + "_"):
-                                try:
-                                    idx = int(mid.split("_")[-1])
-                                except Exception:
-                                    continue
-                                neighbors.append((idx, m.get("text", "")))
+                        neighbors = _neighbors_map.get(prefix, [])
                         if neighbors:
-                            neighbors.sort()
-                            # build expanded text by concatenating previous chunk tail + current snippet
-                            if cur_idx - 1 >= 0 and cur_idx - 1 < len(neighbors):
-                                prev_text = neighbors[cur_idx - 1][1] or ""
-                                # take last 200 chars from previous chunk to form context
-                                prev_tail = prev_text[-200:]
+                            # neighbors already sorted by chunk idx
+                            # find prev chunk text if available
+                            prev_text = None
+                            for idx_i, t in neighbors:
+                                if idx_i == cur_idx - 1:
+                                    prev_text = t or ""
+                                    break
+                            if prev_text is not None:
+                                prev_tail = prev_text[-300:]
                                 combined = (prev_tail + " " + s).strip()
-                                # if combined looks reasonable, return it
                                 if len(combined) > len(s):
                                     return combined
             return s
