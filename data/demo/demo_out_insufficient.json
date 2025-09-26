@@ -1,0 +1,14 @@
+{
+  "query_tr": "Bu soruya kaynaklarda yanıt yok mu?",
+  "query_en": "Do you have no answers to these questions?",
+  "retrieval_time_seconds": 0.0,
+  "generation_time_seconds": 0.9029,
+  "total_time_seconds": 0.9029,
+  "english": {
+    "text": "insufficient"
+  },
+  "turkish": {
+    "text": "yetersiz"
+  },
+  "used_snippets": []
+}

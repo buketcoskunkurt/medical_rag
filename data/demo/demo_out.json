@@ -1,0 +1,55 @@
+{
+  "query_tr": "Uyku bozukluğunun yaygın nedenleri nelerdir?",
+  "query_en": "What are the common causes of sleep disorder?",
+  "retrieval_time_seconds": 0.2073,
+  "generation_time_seconds": 1.3872,
+  "total_time_seconds": 1.5945,
+  "english": {
+    "text": "Insomnia is a highly prevalent, often debilitating, and economically burdensome form of sleep disturbance caused by various situational, medical, emotional, environmental and behavioral factors."
+  },
+  "turkish": {
+    "text": "Uykusuzluk oldukça yaygın, genellikle zayıflatıcı ve çeşitli durumsal, tıbbi, duygusal, çevresel ve davranışsal faktörlerden kaynaklanan uyku rahatsızlıklarının ekonomik olarak yüklenmesidir."
+  },
+  "used_snippets": [
+    {
+      "id": "4174",
+      "title": "Derivation of Research Diagnostic Criteria for Insomnia: Report of an American Academy of Sleep Medicine Work Group",
+      "url": "https://openalex.org/W1555600854",
+      "source": "openalex",
+      "text": "Insomnia is a highly prevalent, often debilitating, and economically burdensome form of sleep disturbance caused by various situational, medical, emotional, environmental and behavioral factors. Although several consensually-derived nosologies have described numerous insomnia phenotypes, research concerning these phenotypes has been greatly hampered by a lack of widely accepted operational research diagnostic criteria (RDC) for their definition. The lack of RDC has, in turn, led to inconsistent research findings for most phenotypes largely due to the variable definitions used for their ascertainment.",
+      "score": -0.785681426525116
+    },
+    {
+      "id": "9603",
+      "title": "[Acute mackerel-induced sleep in a young researcher].",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/27966421/",
+      "source": "pubmed",
+      "text": "Sleeping disorders are common and they are associated with substantial psychological and physical strain in those affected. We report a case of sudden onset of deep sleep in a 29-year-old Danish woman just after intake of mackerel in tomato sauce. There were no abnormal findings in the physical examination and no suspicion of underlying neurological disease. We hypothesize that the observed association between mackerel intake and deep sleep is causal and we suggest that more research is conducted in order to establish the potential of mackerel in treatment of sleeping disorders.",
+      "score": -0.7030215263366699
+    },
+    {
+      "id": "4407",
+      "title": "Sleep and Its Disorders",
+      "url": "https://openalex.org/W2109610174",
+      "source": "openalex",
+      "text": "Sleep disorders are very prevalent in the general population and are associated with significant medical, psychological, and social disturbances. Insomnia is the most common. When chronic, it usually reflects psychological/behavioral disturbances. Most insomniacs can be evaluated in an office setting, and a multidimensional approach is recommended, including sleep hygiene measures, psychotherapy, and medication. The parasomnias, including sleepwalking, night terrors, and nightmares, have benign implications in childhood but often reflect psychopathology or significant stress in adolescents and adults and organicity in the elderly. Excessive daytime sleepiness is typically the most frequent complaint and often reflects organic dysfunction.",
+      "score": -0.7719601392745972
+    },
+    {
+      "id": "9534",
+      "title": "[Sleepiness among adolescents: etiology and multiple consequences].",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/35970642/",
+      "source": "pubmed",
+      "text": "This phenomenon can be explained by physiological changes such as a slower accumulation of sleep pressure. In addition to this perfect storm, environmental and societal factors contribute to the social jetlag and reduce sleep duration in adolescents. Screen exposure before bedtime can delay sleep and wake onset, which is a risk factor for sleeping debt. Substance use such as caffeine, cigarettes or electronic vaporizer, ADHD or freely available medication, alcohol, cannabis use or drug consumption could further disrupt sleep-wake cycle by stimulating, depressing or otherwise disrupting the central nervous system. Early, before 8:30 am, class start times have been associated with chronic sleep deprivation, higher level of sleepiness and delayed melatonin peak secretion.",
+      "score": -0.69734126329422
+    },
+    {
+      "id": "4408",
+      "title": "Sleep and Its Disorders",
+      "url": "https://openalex.org/W2109610174",
+      "source": "openalex",
+      "text": "Excessive daytime sleepiness is typically the most frequent complaint and often reflects organic dysfunction. Narcolepsy and idiopathic hypersomnia are chronic brain disorders with an onset at a young age, whereas sleep apnea is more common in middle age and is associated with obesity and cardiovascular problems. Therapeutic naps, medications, and supportive therapy are recommended for narcolepsy and hypersomnia; continuous positive airway pressure, weight loss, surgery, and oral devices are the common treatments for sleep apnea.",
+      "score": -0.7529392242431641
+    }
+  ]
+}

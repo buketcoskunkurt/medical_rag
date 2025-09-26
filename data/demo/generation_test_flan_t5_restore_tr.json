@@ -1,0 +1,39 @@
+{
+  "query": "causes of insomnia",
+  "retrieval_time_seconds": 0.21249550000084128,
+  "generation_time_seconds": 1.2521122999996805,
+  "total_time_seconds": 9.10946100000001,
+  "english": {
+    "text": "Idiopathic sleep disorder is a common cause of insomnia."
+  },
+  "turkish": {
+    "text": ""
+  },
+  "used_snippets": [
+    {
+      "pid": 11296,
+      "title": "DSM–IV and ICSD–90 insomnia symptoms and sleep dissatisfaction",
+      "url": "https://openalex.org/W2166596753"
+    },
+    {
+      "pid": 11338,
+      "title": "Factors Impairing Daytime Performance in Patients With Sleep Apnea/Hypopnea Syndrome",
+      "url": "https://openalex.org/W2002222957"
+    },
+    {
+      "pid": 12110,
+      "title": "Objective and Subjective Sleep Quality in Premenopausal, Perimenopausal, and Postmenopausal Women in the Wisconsin Sleep Cohort Study",
+      "url": "https://openalex.org/W172588831"
+    },
+    {
+      "pid": 12395,
+      "title": "Recognition of Sleep-disordered Breathing in Children",
+      "url": "https://openalex.org/W1765095761"
+    },
+    {
+      "pid": 11332,
+      "title": "Electroencephalogram spindle activity during dexmedetomidine sedation and physiological sleep",
+      "url": "https://openalex.org/W2025829561"
+    }
+  ]
+}

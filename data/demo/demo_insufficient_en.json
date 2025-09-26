@@ -1,0 +1,13 @@
+{
+  "query": "what is the capital of countrythatdoesnotexist",
+  "retrieval_time_seconds": 2.8700000257231295e-05,
+  "generation_time_seconds": 1.1863413999999466,
+  "total_time_seconds": 4.776828699999896,
+  "english": {
+    "text": "insufficient"
+  },
+  "turkish": {
+    "text": ""
+  },
+  "used_snippets": []
+}

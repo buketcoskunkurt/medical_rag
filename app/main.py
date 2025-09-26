@@ -1,6 +1,6 @@
-# app/main.py
 import os
 import time
+import re
 from typing import List
 from sentence_transformers import SentenceTransformer
 from sentence_transformers import models
@@ -11,46 +11,32 @@ import numpy as np
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-from app.argos_util import translate_offline
-
-# ======================================================================
-#                           YAPILANDIRMA
-# ======================================================================
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INDEX_PATH = os.path.join(BASE_DIR, "data", "index.faiss")      # FAISS index
 META_PATH = os.path.join(BASE_DIR, "data", "meta.parquet")      # Parquet meta
 
-# FAISS index ile aynı olmalı (index'i üretirkenki embedding boyutu)
-# intfloat/multilingual-e5-base => 768-dim
-EMBED_DIM = 768
-
-# load embedding model once at startup (use BioBERT by default for biomedical domain)
-# Default embedder: dmis-lab/biobert-base-cased-v1.1 (768-dim). Ensure compatibility
-# with SentenceTransformer or replace with a sentence-transformers wrapper.
-EMB_MODEL = os.getenv("EMB_MODEL", "dmis-lab/biobert-base-cased-v1.1")
-# Build a SentenceTransformer wrapper explicitly to avoid "creating a new one with mean pooling" message
+"""
+Embedding model must match the FAISS index dimension. The existing index.d=384,
+which corresponds to 'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2'.
+Allow override via EMB_MODEL env, but default to the 384-dim model.
+"""
+EMB_MODEL = os.getenv("EMB_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 _hf = models.Transformer(EMB_MODEL)
 _pool = models.Pooling(_hf.get_word_embedding_dimension(), pooling_mode_mean_tokens=True)
 _embed_model = SentenceTransformer(modules=[_hf, _pool])
+EMBED_DIM = _hf.get_word_embedding_dimension()
  
-# generator model (for future RAG / generation) - default to a BioGPT variant
-GENERATOR_MODEL = os.getenv("GENERATOR_MODEL", "microsoft/biogpt")
+# generator model (default: Flan-T5)
+GENERATOR_MODEL = os.getenv("GENERATOR_MODEL", "google/flan-t5-small")
 
-# kaç sonuç getirileceği için bir üst sınır (kötü kullanım önlemi)
-MAX_K = 20
-# Cross-encoder reranker (optional but improves top-k quality)
+MAX_K = 20  # Maksimum sonuç sayısı
 CROSS_ENCODER_MODEL = os.getenv("CROSS_ENCODER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
 _cross_encoder = CrossEncoder(CROSS_ENCODER_MODEL)
-# reranker weight (alpha) controls contribution of cross-encoder vs FAISS score
 RERANK_ALPHA = float(os.getenv("RERANK_ALPHA", "0.6"))
-# top_n multiplier controls how many FAISS candidates to prefetch before reranking
 TOPN_MULT = int(os.getenv("TOPN_MULT", "20"))
-# absolute cap for top_n
 TOPN_CAP = int(os.getenv("TOPN_CAP", "500"))
-# ======================================================================
-#                        INDEX & META YÜKLEME
-# ======================================================================
 if not os.path.exists(INDEX_PATH):
     raise FileNotFoundError(f"FAISS index bulunamadı: {INDEX_PATH}")
 
@@ -70,7 +56,7 @@ if not os.path.exists(META_PATH):
 meta_df = pd.read_parquet(META_PATH)
 meta_data = meta_df.to_dict(orient="records")
 
-# precompute neighbors map: prefix -> list of (chunk_idx, text)
+# Komşu chunk'ları önceden hesapla
 _neighbors_map = {}
 for m in meta_data:
     mid = str(m.get("id", ""))
@@ -84,9 +70,8 @@ for m in meta_data:
 for k in _neighbors_map:
     _neighbors_map[k].sort()
 
-# ======================================================================
-#                           FASTAPI MODEL
-# ======================================================================
+
+
 app = FastAPI(title="Medical RAG API", version="1.0")
 
 class RetrieveRequest(BaseModel):
@@ -108,30 +93,123 @@ class RetrieveResponse(BaseModel):
     retrieval_ms: int
     results: List[RetrieveResult]
 
-# ======================================================================
-#                      ÇEVİRİ YARDIMCI FONKSİYONLAR
-# ======================================================================
+class QAResponse(BaseModel):
+    query_tr: str
+    query_en: str
+    retrieval_time_seconds: float
+    generation_time_seconds: float
+    total_time_seconds: float
+    english: dict
+    turkish: dict
+    used_snippets: list
+
 def to_tr(text: str, source_hint: str = "en") -> str:
-    """
-    EN -> TR offline çeviri (Argos). Hata olursa metni değiştirme.
-    """
+    # Prefer Argos offline translation if available; fallback: return text
     try:
-        if not text or source_hint == "tr":
-            return text
-        return translate_offline(text, source_hint, "tr")
+        from argostranslate import translate as atrans  # type: ignore
+        src = "en" if source_hint.lower().startswith("en") else "tr"
+        tgt = "tr"
+        out = atrans.translate(text or "", src, tgt)
+        return (out or text or "").strip()
     except Exception:
         return text
 
 def to_en(text: str, source_hint: str = "tr") -> str:
-    """
-    TR -> EN offline çeviri (Argos). Hata olursa metni değiştirme.
-    """
     try:
-        if not text or source_hint == "en":
-            return text
-        return translate_offline(text, source_hint, "en")
+        from argostranslate import translate as atrans  # type: ignore
+        src = "tr" if source_hint.lower().startswith("tr") else "en"
+        tgt = "en"
+        out = atrans.translate(text or "", src, tgt)
+        return (out or text or "").strip()
     except Exception:
         return text
+
+# =========================== Generator (Flan-T5) ============================
+GEN_MODEL_ID = os.getenv("GENERATOR_MODEL", "google/flan-t5-small")
+_gen_tok = AutoTokenizer.from_pretrained(GEN_MODEL_ID)
+_gen_mdl = AutoModelForSeq2SeqLM.from_pretrained(GEN_MODEL_ID)
+
+def build_prompt_en(query: str, snippets: List[dict]) -> str:
+    parts = []
+    parts.append('Answer the user query using ONLY the provided snippets. If you cannot answer from the snippets, reply with exactly the single word: yetersiz')
+    parts.append('\nUser query: ' + query)
+    parts.append('Key terms from the question to stay on-topic: ' + query)
+    parts.append('\nSnippets:')
+    for i, s in enumerate(snippets[:3], start=1):
+        title = (s.get('title') or '').strip()
+        text = (s.get('text') or '').strip()
+        if len(text) > 400:
+            text = text[:400].rsplit(' ', 1)[0] + '...'
+        parts.append(f"[{i}] {title}: {text}")
+    parts.append('\nWrite exactly one concise factual sentence that directly answers the user query using only the snippets.')
+    parts.append('Use key terms from the question so the sentence stays on-topic. Paraphrase; do not copy snippets verbatim.')
+    parts.append('If the question asks for causes or risk factors, name the cause(s) or factor(s) from the snippets succinctly.')
+    parts.append('Do NOT add headings, lists, citations, study mentions, or extra commentary; output only the single sentence or "yetersiz".')
+    return '\n'.join(parts)
+
+def sanitize_paragraph(par: str) -> str:
+    if not par:
+        return par
+    par = re.sub(r'\[\d+\]', '', par)
+    par = re.sub(r'\bSNIPPET\b', '', par, flags=re.I)
+    par = re.sub(r'\bSNIPET\b', '', par, flags=re.I)
+    par = re.sub(r'^(Abstract|Özet|Summary|Conclusion|Başlık)[:\-–—]\s*', '', par, flags=re.I)
+    par = re.sub(r'([\.!?]){2,}', r'\1', par)
+    par = re.sub(r'\s{2,}', ' ', par).strip()
+    # Strip possible prompt leakage
+    par = re.sub(r'\bno lists, no citations, no extra sections\.\?\b', '', par, flags=re.I).strip()
+    par = re.sub(r'\bdo not add( any)? headings[^\.]*\.?', '', par, flags=re.I).strip()
+    par = re.sub(r'\bstart directly with[^\.]*\.?', '', par, flags=re.I).strip()
+    if par:
+        par = par[0].upper() + par[1:]
+    return par
+
+def enforce_single_sentence(text: str, snippets: list | None = None) -> str:
+    t = (text or '').strip()
+    if not t:
+        return 'yetersiz'
+    t = re.sub(r'\s+', ' ', t).strip()
+    # Strip leading heading-like patterns such as "Some Title: ..." or "Heading - ..."
+    t = re.sub(r'^[\"\'\`\s]*[A-Za-z0-9 \-()]{1,100}[:\-–—]\s*', '', t)
+    m = re.search(r'(.+?[\.!?])\s', t + ' ')
+    s = m.group(1).strip() if m else t
+    # Simple duplicate half heuristic
+    words = s.split()
+    if len(words) > 10:
+        mid = len(words) // 2
+        fh = re.sub(r'[^a-z0-9]', '', ' '.join(words[:mid]).lower())
+        sh = re.sub(r'[^a-z0-9]', '', ' '.join(words[mid:]).lower())
+        if fh and sh and (fh == sh or fh in sh or sh in fh):
+            s = ' '.join(words[:mid]).rstrip(' ,;:') + '.'
+    # Fallback to extractive if empty after cleaning
+    if not s.strip() and snippets:
+        for sn in snippets:
+            txt = (sn.get('text') or '')
+            for seg in txt.split('. '):
+                seg = seg.strip()
+                if len(seg) > 30:
+                    s = seg.rstrip('.') + '.'
+                    break
+            if s:
+                break
+    if len(s) > 200:
+        s = s[:200].rsplit(' ', 1)[0].rstrip(' ,;:') + '...'
+    if s and s[-1] not in '.!?':
+        s += '.'
+    return s
+
+def generate_one_sentence_en(prompt: str, max_new_tokens: int = 192, temperature: float = 0.0) -> str:
+    import torch
+    inputs = _gen_tok(prompt, return_tensors='pt', truncation=True, max_length=1024)
+    gen_kwargs = dict(max_new_tokens=max_new_tokens)
+    if temperature == 0:
+        gen_kwargs.update(dict(do_sample=False, num_beams=4, early_stopping=True, min_length=10))
+    else:
+        gen_kwargs.update(dict(do_sample=True, top_p=0.9, top_k=40, min_length=10, temperature=temperature))
+    with torch.no_grad():
+        out = _gen_mdl.generate(**inputs, **gen_kwargs)
+    text = _gen_tok.decode(out[0], skip_special_tokens=True)
+    return enforce_single_sentence(sanitize_paragraph(text))
 
 # ======================================================================
 #                      SNIPPET SEÇİM YARDIMCISI
@@ -258,6 +336,7 @@ def search(query_en: str, k: int = 5):
             "id": str(doc.get("id", idx)),
             "title": str(doc.get("title", "") or ""),
             "url": str(doc.get("url", "") or ""),
+            "source": str(doc.get("source", "") or ""),
             "score": float(final_score),
             "snippet": pick_snippet(doc),
             "_cross_score": float(c_n),
@@ -275,7 +354,7 @@ def retrieve(inp: RetrieveRequest):
     """
     TR soruyu EN'e çevir -> FAISS ile ara -> sonuçların başlık & özetini TR'ye çevir.
     """
-    t0 = time.time()
+    t0 = time.time() #retrieve t0
     q_tr = inp.question
     if not q_tr.strip():
         raise HTTPException(status_code=400, detail="Soru boş olamaz.")
@@ -305,8 +384,75 @@ def retrieve(inp: RetrieveRequest):
     return RetrieveResponse(
         query_tr=q_tr,
         query_en=q_en,
-        retrieval_ms=int((time.time() - t0) * 1000),
+        retrieval_ms=int((time.time() - t0) * 1000), #retrieve süresi ms cinsinden
         results=results
+    )
+
+@app.post("/qa", response_model=QAResponse)
+def qa(inp: RetrieveRequest):
+    """Unified schema: retrieve snippets and return generation placeholders with requested fields."""
+    t0 = time.time()
+    q_tr = inp.question
+    if not q_tr.strip():
+        raise HTTPException(status_code=400, detail="Soru boş olamaz.")
+    q_en = to_en(q_tr, source_hint="tr")
+
+    # retrieval timing
+    r0 = time.time()
+    hits = search(q_en, k=inp.k)
+    r1 = time.time()
+
+    # Map hits -> unified snippet objects
+    used_snippets = []
+    for h in hits:
+        used_snippets.append({
+            "id": h["id"],
+            "title": h["title"],
+            "url": h["url"],
+            "source": h.get("source", ""),
+            "text": h["snippet"],
+            "score": h["score"],
+        })
+
+    # Build prompt from EN query and top snippets (already EN in meta)
+    g0 = time.time()
+    prompt = build_prompt_en(q_en, used_snippets)
+    english_text = generate_one_sentence_en(prompt, max_new_tokens=192, temperature=0.0)
+    # Normalize to detect 'yetersiz' or 'insufficient' regardless of case/punctuation
+    norm = re.sub(r'[^a-z]', '', (english_text or '').lower())
+    if norm in {'yetersiz', 'insufficient'}:
+        english_text = 'insufficient'
+        turkish_text = 'yetersiz'  # match pipeline expectation
+    else:
+        turkish_text = to_tr(english_text, source_hint='en')
+    # Apply final sentence enforcement with snippet-aware fallback (skip if insufficient)
+    if english_text.strip().lower() != 'insufficient':
+        english_text = enforce_single_sentence(sanitize_paragraph(english_text), used_snippets)
+    # Small normalization for Turkish medical terms (parity with demo)
+    def _normalize_tr(s: str) -> str:
+        if not s:
+            return s
+        rep = {
+            'Inzonia': 'Uykusuzluk',
+            'İnzonia': 'Uykusuzluk',
+            'Insomnia': 'Uykusuzluk',
+            'insomnia': 'Uykusuzluk',
+        }
+        for k, v in rep.items():
+            s = s.replace(k, v)
+        return s
+    turkish_text = _normalize_tr(turkish_text)
+    g1 = time.time()
+
+    return QAResponse(
+        query_tr=q_tr,
+        query_en=q_en,
+        retrieval_time_seconds=round(r1 - r0, 4),
+        generation_time_seconds=round(g1 - g0, 4),
+        total_time_seconds=round((r1 - r0) + (g1 - g0), 4),
+        english={"text": english_text},
+        turkish={"text": turkish_text},
+        used_snippets=used_snippets,
     )
 
 @app.get("/health")

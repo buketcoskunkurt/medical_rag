@@ -16,7 +16,7 @@ CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "150")) # chunk'lar arasındaki �
 # checkpoint isn't compatible with SentenceTransformer, provide a sentence-
 # transformers wrapper or change MODEL_NAME via env.
 MODEL_NAME = os.getenv("MODEL_NAME", "dmis-lab/biobert-base-cased-v1.1")
-DATA_IN = Path("data/pubmed.jsonl")
+DATA_IN = Path("data/combined.jsonl")
 OUT_DIR = Path("data")
 
 import argparse
@@ -120,7 +120,7 @@ def main():
     pool = models.Pooling(hf.get_word_embedding_dimension(), pooling_mode_mean_tokens=True)
     model = SentenceTransformer(modules=[hf, pool])
 
-    ids, titles, urls, chunks = [], [], [], [] 
+    ids, titles, urls, sources, chunks = [], [], [], [], [] 
     with open(data_in_path, "r", encoding="utf-8") as f:
         for line in f:
             d = json.loads(line)
@@ -129,6 +129,7 @@ def main():
                 ids.append(f'{d.get("id","")}_{ci}')
                 titles.append(d.get("title", ""))
                 urls.append(d.get("url", ""))
+                sources.append(d.get("source", ""))
                 chunks.append(c)
             # also store original source text for better snippet expansion
             # we'll add one meta row per chunk, so replicate source_text for each chunk
@@ -158,26 +159,25 @@ def main():
         "pid": pids,
         "id": ids,
         "title": titles,
+        "source": sources,
         "url": urls,
         "text": chunks
     })
 
-    faiss.write_index(index, str(OUT_DIR / "index.faiss"))
+    faiss.write_index(index, str(out_dir / "index.faiss"))
     # Try writing parquet; if pyarrow/fastparquet are not installed, fall back
     # to JSONL so the pipeline doesn't fail on machines without optional deps.
+    # Parquet kaydı için pyarrow/fastparquet kontrolü
     try:
-        meta.to_parquet(OUT_DIR / "meta.parquet", index=False)
-        print("[build_index] wrote: data/index.faiss, data/meta.parquet")
-    except Exception as e:
-        print("[build_index] parquet write failed (pyarrow/fastparquet missing?). Falling back to JSONL.")
-        try:
-            outjson = OUT_DIR / "meta.jsonl"
-            outjson.parent.mkdir(parents=True, exist_ok=True)
-            meta.to_json(outjson, orient='records', lines=True, force_ascii=False)
-            print(f"[build_index] wrote: data/index.faiss, {outjson}")
-        except Exception as e2:
-            print("[build_index] Failed to write fallback JSONL metadata:", e2)
-            raise
+        import pyarrow
+        meta.to_parquet(out_dir / "meta.parquet", index=False)
+        print(f"[build_index] wrote: {out_dir}/index.faiss, {out_dir}/meta.parquet")
+    except ImportError:
+        print("[build_index] pyarrow/fastparquet eksik. Parquet kaydedilemiyor, sadece JSONL kaydedilecek.")
+        outjson = out_dir / "meta.jsonl"
+        outjson.parent.mkdir(parents=True, exist_ok=True)
+        meta.to_json(outjson, orient='records', lines=True, force_ascii=False)
+        print(f"[build_index] wrote: {out_dir}/index.faiss, {outjson}")
 
 if __name__ == "__main__":
     main()
