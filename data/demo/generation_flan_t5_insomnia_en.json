@@ -1,0 +1,79 @@
+{
+  "query_tr": "",
+  "query_en": "What are common symptoms of insomnia?",
+  "retrieval_time_seconds": 2.5677,
+  "generation_time_seconds": 2.798,
+  "total_time_seconds": 5.3657,
+  "english": {
+    "text": "Insomnia is the most common."
+  },
+  "turkish": {
+    "text": "Uykusuzluk en yaygın olanıdır."
+  },
+  "used_snippets": [
+    {
+      "id": "4403",
+      "title": "Insomnia with Objective Short Sleep Duration is Associated with a High Risk for Hypertension",
+      "url": "https://openalex.org/W1770765878",
+      "source": "openalex",
+      "text": "The risk for hypertension was significantly higher, but of lesser magnitude, in poor sleepers with short sleep duration. Insomnia with short sleep duration is associated with increased risk of hypertension, to a degree comparable to that of other common sleep disorders, e.g., SDB. Objective sleep duration may predict the severity of chronic insomnia a prevalent condition whose medical impact has been apparently underestimated.",
+      "score": 0.7633796898663066
+    },
+    {
+      "id": "4407",
+      "title": "Sleep and Its Disorders",
+      "url": "https://openalex.org/W2109610174",
+      "source": "openalex",
+      "text": "Sleep disorders are very prevalent in the general population and are associated with significant medical, psychological, and social disturbances. Insomnia is the most common. When chronic, it usually reflects psychological/behavioral disturbances. Most insomniacs can be evaluated in an office setting, and a multidimensional approach is recommended, including sleep hygiene measures, psychotherapy, and medication. The parasomnias, including sleepwalking, night terrors, and nightmares, have benign implications in childhood but often reflect psychopathology or significant stress in adolescents and adults and organicity in the elderly. Excessive daytime sleepiness is typically the most frequent complaint and often reflects organic dysfunction.",
+      "score": 0.7399962182114876
+    },
+    {
+      "id": "4489",
+      "title": "Sleep Habits and Sleep Disturbance in Elementary School-Aged Children",
+      "url": "https://openalex.org/W2132324962",
+      "source": "openalex",
+      "text": "Relatively little is known about sleep habits, sleep disturbances, and the consequences of disordered sleep in school-aged children. This descriptive study examined a variety of common sleep behaviors in a group of 494 elementary school children, grades kindergarten through fourth, using a battery of sleep questionnaires that included parent, teacher, and self-report surveys. The prevalence of parent-defined sleep problems ranged from 3.7% (Sleep-Disordered Breathing) to 15.1% (Bedtime Resistance), with 37% of the overall sample described as having significant sleep problems in at least one sleep domain. Younger children were more likely than older children to have sleep problems noted by parents (particularly bedtime struggles and night wakings), as well as by teacher and self-report.",
+      "score": 0.7119651445104691
+    },
+    {
+      "id": "4408",
+      "title": "Sleep and Its Disorders",
+      "url": "https://openalex.org/W2109610174",
+      "source": "openalex",
+      "text": "Excessive daytime sleepiness is typically the most frequent complaint and often reflects organic dysfunction. Narcolepsy and idiopathic hypersomnia are chronic brain disorders with an onset at a young age, whereas sleep apnea is more common in middle age and is associated with obesity and cardiovascular problems. Therapeutic naps, medications, and supportive therapy are recommended for narcolepsy and hypersomnia; continuous positive airway pressure, weight loss, surgery, and oral devices are the common treatments for sleep apnea.",
+      "score": 0.6994303639674428
+    },
+    {
+      "id": "9529",
+      "title": "Sleep characteristics and health-related quality of life among a national sample of American young adults: assessment of possible health disparities.",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/23860850/",
+      "source": "pubmed",
+      "text": "Insomnia, long sleep latency, troubling falling asleep, daytime sleepiness, and frequent sleeping pill use were significantly associated with low mental HRQOL and overall HRQOL. The associations between sleep disturbances and low HRQOL varied little by sex, race/ethnicity, and country of birth. Sleep disturbances are common among US young adults and are significantly associated with low HRQOL. Objective measures of sleep are warranted to confirm our findings.",
+      "score": 0.6981002884608722
+    },
+    {
+      "id": "4558",
+      "title": "Sleep problems in children with autism",
+      "url": "https://openalex.org/W2019711303",
+      "source": "openalex",
+      "text": "Least frequently reported sleep problems were sleep walking, morning headaches, crying during sleep, apnea, and nightmares. When surveys were divided into mental retardation (MR)/not MR categories, no significant differences were identified in frequencies of reported sleep problems except for waking at night which occurred much more frequently in the MR group. There was also no difference in sleep problems related to age of the child other than nocturnal enuresis. An association was noted between certain medical problems and sleep problems. Vision problems, upper respiratory problems, and runny nose were associated with decreased nighttime sleep. Vision problems, poor appetite, and poor growth were associated with increased nighttime waking.",
+      "score": 0.6860201213278903
+    },
+    {
+      "id": "4559",
+      "title": "Sleep problems in children with autism",
+      "url": "https://openalex.org/W2019711303",
+      "source": "openalex",
+      "text": "Vision problems, poor appetite, and poor growth were associated with increased nighttime waking. Poor appetite and poor growth were associated with decreased willingness to fall asleep. This study confirms a high prevalence of sleep problems reported by parents of children with autism and points to the need for more systematic research as an initial step in developing treatment strategies.",
+      "score": 0.6743434275598617
+    },
+    {
+      "id": "9199",
+      "title": "First-night effect of melatonin treatment in patients with chronic schizophrenia.",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/11106143/",
+      "source": "pubmed",
+      "text": "The first-night effect (FNE) is the tendency for individuals to sleep worse than normal during their first night of polysomnographic sleep evaluation. FNE reflects the adaptive increase of alertness and perhaps the stress resulting from an unfamiliar sleeping environment. This effect is usually absent in patients with chronic schizophrenia. Melatonin (N-acetyl-5-methoxy-tryptamine), the hormone secreted by the pineal gland at night, has been found to improve sleep in elderly patients with insomnia and recently in patients with chronic schizophrenia. The authors used FNE as a marker to explore the neurobehavioral responses of patients with chronic schizophrenia to melatonin treatment.",
+      "score": 0.6325527439325553
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+Query,Query_Length,Perplexity
+What is diabetes?,Short,7.6426367367189
+Causes of hypertension,Short,18.889136157171095
+Symptoms of migraine,Short,702.735625441904
+Risk factors of heart attack,Short,13.56503850632327
+Diagnosis of asthma,Short,19.497809091003127
+Multiple sclerosis,Short,43.29580193967819
+Treatment of epilepsy,Short,88.90923893643658
+Types of anemia,Short,28.548556346268075
+Causes of depression,Short,22.36628462129594
+Lung cancer,Short,17.541486111093064
+Thyroid nodule,Short,34.08589613327765
+Chronic kidney disease,Short,26.38352829577006
+Sexually transmitted diseases,Short,51.99809903789809
+COVID-19 vaccines,Short,55.073303283822824
+Complications of obesity,Short,32.45857734304888
+High cholesterol,Short,44.712598100645636
+Parkinson's disease,Short,44.64458377739806
+Pancreatitis,Short,341.80159015715316
+Prostate cancer,Short,34.14610315781299
+Cushing syndrome,Short,23.75882328077436
+Psoriasis,Short,191.13422706020776
+Rheumatoid arthritis,Short,18.131300451120936
+Tuberculosis,Short,28.23173530403863
+Cataract treatment,Short,47.738031118171335
+Symptoms of dementia,Short,4.690650198858
+Causes of gastritis,Short,15.319864126681821
+Fatty liver disease,Short,25.95974253898509
+Vitiligo,Short,99.80036348139534
+Autism spectrum disorder,Short,16.075219104109724
+Down syndrome,Short,99.16820942651405
+What are the current treatment options for type 2 diabetes?,Medium,20.142383237638906
+Which methods are used for early diagnosis of hypertension?,Medium,67.82179879101493
+What drug groups are used in asthma management?,Medium,39.13612956362576
+How is epilepsy diagnosed?,Medium,31.73535364466542
+What are the most common causes of anemia?,Medium,26.243044434334593
+When is bariatric surgery indicated?,Medium,33.45281334622918
+What non-drug treatments are available for Parkinson's disease?,Medium,25.240481294624654
+How to differentiate migraine from tension-type headache?,Medium,35.5947923421939
+Which tests are used to diagnose heart failure?,Medium,372.177588232731
+What screening methods are used in lung cancer?,Medium,20.0179282487608
+What is the role of biologics in rheumatoid arthritis treatment?,Medium,46.33674867855682
+How to assess malignancy risk in thyroid nodules?,Medium,32.957520315683134
+What are the dietary recommendations in chronic kidney disease?,Medium,21.267202548028838
+When are autism symptoms noticed in children?,Medium,25.758870634751542
+How to differentiate dementia from normal aging?,Medium,4.690650198858
+How long is tuberculosis treatment?,Medium,31.146796685228544
+What lifestyle changes help with fatty liver disease?,Medium,153.53870928875637
+At what age should prostate cancer screening be performed?,Medium,33.33883477972288
+Which tests are used to diagnose Cushing syndrome?,Medium,38.99047719941701
+What biologic therapies are available for psoriasis?,Medium,23.617681540782705
+What are the differences between gastritis and reflux?,Medium,38.780442839734846
+How effective is phototherapy in vitiligo treatment?,Medium,45.39238381740929
+What are the side effects of COVID-19 vaccines?,Medium,96.15728178777105
+What are the symptoms of pulmonary embolism?,Medium,18.467444518102685
+How to distinguish heart attack from panic attack?,Medium,30.309974522635038
+What is the importance of rehabilitation after stroke?,Medium,78.5466909626712
+Which medications are used in anxiety disorder?,Medium,17.112136695863047
+What psychosocial approaches are used in schizophrenia treatment?,Medium,60.29032472205816
+What are the symptoms of bipolar mania?,Medium,16.28208668251321
+What are the treatment methods for alcohol addiction?,Medium,52.75842707414916
+What treatments help with smoking cessation?,Medium,27.61522477210154
+How are food allergies diagnosed?,Medium,60.136658020305426
+What are the symptoms of vitamin D deficiency?,Medium,13.487431363220335
+What are the principles of cancer immunotherapy?,Medium,24.306676744268085
+How is early detection of breast cancer performed?,Medium,22.422576286363014
+Which foods are prohibited in celiac disease?,Medium,17.501032248301765
+What are the symptoms of polycystic ovary syndrome?,Medium,20.68098379064536
+What is the role of laparoscopy in endometriosis?,Medium,40.71209919444534
+What are the risks of hypertension in pregnancy?,Medium,22.544602532665817
+Which treatments prevent preterm birth?,Medium,46.84930743125212
+"How should treatment be planned in a type 2 diabetic patient with obesity, hypertension, and hyperlipidemia?",Long,36.79488492957481
+How is anemia treated in an elderly patient with chronic kidney disease?,Long,18.841198562392385
+What are the advanced treatment options for uncontrolled asthma?,Long,76.00568671536293
+Which drugs are used for migraine prophylaxis and in which patients?,Long,258.05139230635456
+When is epilepsy surgery considered and what is its success rate?,Long,26.043581519809038
+Who are candidates for deep brain stimulation in Parkinson's disease?,Long,18.16362516072143
+What is the role of PET-CT in lung cancer staging and in which patients is it recommended?,Long,118.29566905802879
+What are the follow-up protocols after thyroid cancer surgery?,Long,183609.30090854704
+How is infection risk managed in rheumatoid arthritis patients receiving biologics?,Long,21.544130371687775
+What approaches are used for behavioral problems in dementia patients?,Long,20.670557923937423
+Which biomarkers are used for early diagnosis of Alzheimer's disease?,Long,29.580277811885637
+What are the long-term outcomes of rehabilitation after stroke?,Long,27.50314982238833
+How does bariatric surgery affect cardiovascular risks?,Long,14.206568169752684
+When is neoadjuvant chemotherapy used in breast cancer?,Long,85.49143821247071
+What alternatives to colonoscopy exist for colorectal cancer screening?,Long,14.130757648053638
+What are the treatment options for portal hypertension in liver cirrhosis?,Long,23.003170128760047
+What are the new targeted therapies for pancreatic cancer?,Long,58.45609317942916
+What is the role of ketogenic diet in pediatric epilepsy?,Long,19.95020467678065
+What are the effects of thyroid disorders in pregnancy on mother and baby?,Long,34.4468071742334
+What is the sensitivity and specificity of serological tests in celiac disease?,Long,65.89899731654484
+What is the long-term safety of biologics in psoriasis?,Long,460.45077860659285
+How effective are immunomodulatory drugs in multiple sclerosis?,Long,91.2718217068399
+What are the advantages of immunotherapy over chemotherapy in cancer?,Long,33.306086754728156
+What are the long-term respiratory problems after COVID-19 and how are they treated?,Long,70.07513233562837
+How should TB be treated in an HIV positive patient?,Long,25.487558025438403
+What are the alternatives if methotrexate is not tolerated in rheumatoid arthritis?,Long,14.243141758941686
+What are the fertility treatment options in polycystic ovary syndrome?,Long,214.7909320312161
+How do hormonal therapy and surgery compare in endometriosis treatment?,Long,7.6198120586077085
+How effective is progesterone therapy in high-risk pregnancies for preterm birth?,Long,17.549237469809295
+When is radiosurgery used in brain tumors and what is its success rate?,Long,39.57390616120444

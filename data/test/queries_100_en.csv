@@ -1,0 +1,101 @@
+Query,Query_Length
+What is diabetes?,Short
+Causes of hypertension,Short
+Symptoms of migraine,Short
+Risk factors of heart attack,Short
+Diagnosis of asthma,Short
+Multiple sclerosis,Short
+Treatment of epilepsy,Short
+Types of anemia,Short
+Causes of depression,Short
+Lung cancer,Short
+Thyroid nodule,Short
+Chronic kidney disease,Short
+Sexually transmitted diseases,Short
+COVID-19 vaccines,Short
+Complications of obesity,Short
+High cholesterol,Short
+Parkinson's disease,Short
+Pancreatitis,Short
+Prostate cancer,Short
+Cushing syndrome,Short
+Psoriasis,Short
+Rheumatoid arthritis,Short
+Tuberculosis,Short
+Cataract treatment,Short
+Symptoms of dementia,Short
+Causes of gastritis,Short
+Fatty liver disease,Short
+Vitiligo,Short
+Autism spectrum disorder,Short
+Down syndrome,Short
+What are the current treatment options for type 2 diabetes?,Medium
+Which methods are used for early diagnosis of hypertension?,Medium
+What drug groups are used in asthma management?,Medium
+How is epilepsy diagnosed?,Medium
+What are the most common causes of anemia?,Medium
+When is bariatric surgery indicated?,Medium
+What non-drug treatments are available for Parkinson's disease?,Medium
+How to differentiate migraine from tension-type headache?,Medium
+Which tests are used to diagnose heart failure?,Medium
+What screening methods are used in lung cancer?,Medium
+What is the role of biologics in rheumatoid arthritis treatment?,Medium
+How to assess malignancy risk in thyroid nodules?,Medium
+What are the dietary recommendations in chronic kidney disease?,Medium
+When are autism symptoms noticed in children?,Medium
+How to differentiate dementia from normal aging?,Medium
+How long is tuberculosis treatment?,Medium
+What lifestyle changes help with fatty liver disease?,Medium
+At what age should prostate cancer screening be performed?,Medium
+Which tests are used to diagnose Cushing syndrome?,Medium
+What biologic therapies are available for psoriasis?,Medium
+What are the differences between gastritis and reflux?,Medium
+How effective is phototherapy in vitiligo treatment?,Medium
+What are the side effects of COVID-19 vaccines?,Medium
+What are the symptoms of pulmonary embolism?,Medium
+How to distinguish heart attack from panic attack?,Medium
+What is the importance of rehabilitation after stroke?,Medium
+Which medications are used in anxiety disorder?,Medium
+What psychosocial approaches are used in schizophrenia treatment?,Medium
+What are the symptoms of bipolar mania?,Medium
+What are the treatment methods for alcohol addiction?,Medium
+What treatments help with smoking cessation?,Medium
+How are food allergies diagnosed?,Medium
+What are the symptoms of vitamin D deficiency?,Medium
+What are the principles of cancer immunotherapy?,Medium
+How is early detection of breast cancer performed?,Medium
+Which foods are prohibited in celiac disease?,Medium
+What are the symptoms of polycystic ovary syndrome?,Medium
+What is the role of laparoscopy in endometriosis?,Medium
+What are the risks of hypertension in pregnancy?,Medium
+Which treatments prevent preterm birth?,Medium
+"How should treatment be planned in a type 2 diabetic patient with obesity, hypertension, and hyperlipidemia?",Long
+How is anemia treated in an elderly patient with chronic kidney disease?,Long
+What are the advanced treatment options for uncontrolled asthma?,Long
+Which drugs are used for migraine prophylaxis and in which patients?,Long
+When is epilepsy surgery considered and what is its success rate?,Long
+Who are candidates for deep brain stimulation in Parkinson's disease?,Long
+What is the role of PET-CT in lung cancer staging and in which patients is it recommended?,Long
+What are the follow-up protocols after thyroid cancer surgery?,Long
+How is infection risk managed in rheumatoid arthritis patients receiving biologics?,Long
+What approaches are used for behavioral problems in dementia patients?,Long
+Which biomarkers are used for early diagnosis of Alzheimer's disease?,Long
+What are the long-term outcomes of rehabilitation after stroke?,Long
+How does bariatric surgery affect cardiovascular risks?,Long
+When is neoadjuvant chemotherapy used in breast cancer?,Long
+What alternatives to colonoscopy exist for colorectal cancer screening?,Long
+What are the treatment options for portal hypertension in liver cirrhosis?,Long
+What are the new targeted therapies for pancreatic cancer?,Long
+What is the role of ketogenic diet in pediatric epilepsy?,Long
+What are the effects of thyroid disorders in pregnancy on mother and baby?,Long
+What is the sensitivity and specificity of serological tests in celiac disease?,Long
+What is the long-term safety of biologics in psoriasis?,Long
+How effective are immunomodulatory drugs in multiple sclerosis?,Long
+What are the advantages of immunotherapy over chemotherapy in cancer?,Long
+What are the long-term respiratory problems after COVID-19 and how are they treated?,Long
+How should TB be treated in an HIV positive patient?,Long
+What are the alternatives if methotrexate is not tolerated in rheumatoid arthritis?,Long
+What are the fertility treatment options in polycystic ovary syndrome?,Long
+How do hormonal therapy and surgery compare in endometriosis treatment?,Long
+How effective is progesterone therapy in high-risk pregnancies for preterm birth?,Long
+When is radiosurgery used in brain tumors and what is its success rate?,Long
