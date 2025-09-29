@@ -15,7 +15,8 @@ CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "150")) # chunk'lar arasÄ±ndaki Ã
 # sentence-transformers-compatible model. If the plain HuggingFace BioBERT
 # checkpoint isn't compatible with SentenceTransformer, provide a sentence-
 # transformers wrapper or change MODEL_NAME via env.
-MODEL_NAME = os.getenv("MODEL_NAME", "dmis-lab/biobert-base-cased-v1.1")
+# Default to local safetensors export to avoid torch.load restrictions in CUDA envs < 2.6
+MODEL_NAME = os.getenv("MODEL_NAME", "models/biobert-base-cased-v1.1-sf")
 DATA_IN = Path("data/combined.jsonl")
 OUT_DIR = Path("data")
 
@@ -105,6 +106,8 @@ def main():
     p.add_argument('--out', dest='out_dir', default=str(OUT_DIR))
     p.add_argument('--chunk_size', type=int, default=CHUNK_SIZE)
     p.add_argument('--chunk_overlap', type=int, default=CHUNK_OVERLAP)
+    p.add_argument('--emb-model', dest='emb_model', default=MODEL_NAME,
+                   help='Sentence-Transformers compatible model name or local path (default: local BioBERT safetensors)')
     args = p.parse_args()
 
     data_in_path = Path(args.data_in)
@@ -116,7 +119,8 @@ def main():
     # name binding issues). Create output dir.
     out_dir.mkdir(exist_ok=True, parents=True)
     # Build SentenceTransformer explicitly (Transformer + Pooling) to ensure consistent pooling
-    hf = models.Transformer(MODEL_NAME)
+    emb_name = args.emb_model or MODEL_NAME
+    hf = models.Transformer(emb_name)
     pool = models.Pooling(hf.get_word_embedding_dimension(), pooling_mode_mean_tokens=True)
     model = SentenceTransformer(modules=[hf, pool])
 
@@ -135,7 +139,7 @@ def main():
             # we'll add one meta row per chunk, so replicate source_text for each chunk
             # (keeps alignment of rows)
 
-    print(f"[build_index] total chunks: {len(chunks)} (model={MODEL_NAME})")
+    print(f"[build_index] total chunks: {len(chunks)} (model={emb_name})")
     embs = model.encode(
         chunks,
         batch_size=64,

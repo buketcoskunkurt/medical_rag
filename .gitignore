@@ -81,3 +81,7 @@ data/meta.parquet
 *.swo
 .idea/
 .vscode/
+
+# Local models and large artifacts
+models/
+*.safetensors

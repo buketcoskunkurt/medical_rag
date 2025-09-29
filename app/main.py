@@ -18,18 +18,18 @@ INDEX_PATH = os.path.join(BASE_DIR, "data", "index.faiss")      # FAISS index
 META_PATH = os.path.join(BASE_DIR, "data", "meta.parquet")      # Parquet meta
 
 """
-Embedding model must match the FAISS index dimension. The existing index.d=384,
-which corresponds to 'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2'.
-Allow override via EMB_MODEL env, but default to the 384-dim model.
+Embedding model must match the FAISS index dimension.
+Default to local BioBERT safetensors to avoid torch.load restrictions.
+Override with EMB_MODEL env var if needed.
 """
-EMB_MODEL = os.getenv("EMB_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+EMB_MODEL = os.getenv("EMB_MODEL", os.path.join(BASE_DIR, "models", "biobert-base-cased-v1.1-sf"))
 _hf = models.Transformer(EMB_MODEL)
 _pool = models.Pooling(_hf.get_word_embedding_dimension(), pooling_mode_mean_tokens=True)
 _embed_model = SentenceTransformer(modules=[_hf, _pool])
 EMBED_DIM = _hf.get_word_embedding_dimension()
  
-# generator model (default: Flan-T5)
-GENERATOR_MODEL = os.getenv("GENERATOR_MODEL", "google/flan-t5-small")
+# generator model (default per Option A): Flan-T5 base
+GENERATOR_MODEL = os.getenv("GENERATOR_MODEL", "google/flan-t5-base")
 
 MAX_K = 20  # Maksimum sonuç sayısı
 CROSS_ENCODER_MODEL = os.getenv("CROSS_ENCODER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
@@ -45,8 +45,10 @@ index = faiss.read_index(INDEX_PATH)
 if index.d != EMBED_DIM:
     # FAISS index dimension ile EMBED_DIM uyuşmuyorsa erken uyarı
     raise ValueError(
-        f"FAISS index dim({index.d}) != EMBED_DIM({EMBED_DIM}). "
-        f"Index hangi embedding ile üretildiyse EMBED_DIM ona eşit olmalı."
+        (
+            f"FAISS index dim({index.d}) != EMBED_DIM({EMBED_DIM}). "
+            f"API EMB_MODEL='{EMB_MODEL}'. Lütfen API embedder ile indeksi aynı modelle hizalayın."
+        )
     )
 
 if not os.path.exists(META_PATH):
@@ -125,7 +127,8 @@ def to_en(text: str, source_hint: str = "tr") -> str:
         return text
 
 # =========================== Generator (Flan-T5) ============================
-GEN_MODEL_ID = os.getenv("GENERATOR_MODEL", "google/flan-t5-small")
+# Single source of truth for model id
+GEN_MODEL_ID = GENERATOR_MODEL
 _gen_tok = AutoTokenizer.from_pretrained(GEN_MODEL_ID)
 _gen_mdl = AutoModelForSeq2SeqLM.from_pretrained(GEN_MODEL_ID)
 
@@ -135,7 +138,7 @@ def build_prompt_en(query: str, snippets: List[dict]) -> str:
     parts.append('\nUser query: ' + query)
     parts.append('Key terms from the question to stay on-topic: ' + query)
     parts.append('\nSnippets:')
-    for i, s in enumerate(snippets[:3], start=1):
+    for i, s in enumerate(snippets[:5], start=1):
         title = (s.get('title') or '').strip()
         text = (s.get('text') or '').strip()
         if len(text) > 400:
@@ -144,6 +147,7 @@ def build_prompt_en(query: str, snippets: List[dict]) -> str:
     parts.append('\nWrite exactly one concise factual sentence that directly answers the user query using only the snippets.')
     parts.append('Use key terms from the question so the sentence stays on-topic. Paraphrase; do not copy snippets verbatim.')
     parts.append('If the question asks for causes or risk factors, name the cause(s) or factor(s) from the snippets succinctly.')
+    parts.append('If the question is about triggers/causes but the snippets do not explicitly mention triggers/causes, reply exactly: yetersiz')
     parts.append('Do NOT add headings, lists, citations, study mentions, or extra commentary; output only the single sentence or "yetersiz".')
     return '\n'.join(parts)
 
@@ -198,7 +202,7 @@ def enforce_single_sentence(text: str, snippets: list | None = None) -> str:
         s += '.'
     return s
 
-def generate_one_sentence_en(prompt: str, max_new_tokens: int = 192, temperature: float = 0.0) -> str:
+def generate_one_sentence_en(prompt: str, max_new_tokens: int = 256, temperature: float = 0.5) -> str:
     import torch
     inputs = _gen_tok(prompt, return_tensors='pt', truncation=True, max_length=1024)
     gen_kwargs = dict(max_new_tokens=max_new_tokens)
@@ -286,7 +290,24 @@ def search(query_en: str, k: int = 5):
     if k > MAX_K:
         k = MAX_K
 
-    qv = embed_query(query_en).reshape(1, -1)  # (1, d)
+    # Trigger intent detection and simple query expansion to help dense retrieval
+    ql = (query_en or '').lower()
+    trigger_intent = any(kw in ql for kw in ['trigger', 'triggers', 'cause', 'causes', 'risk factor'])
+    expanded_query = query_en
+    if trigger_intent:
+        trigger_terms = [
+            'trigger', 'triggers', 'precipitating factors', 'provoking factors', 'risk factors',
+            'cause', 'causes', 'precipitate', 'precipitation',
+            'stress', 'lack of sleep', 'sleep deprivation', 'bright light', 'flicker', 'screen', 'noise',
+            'alcohol', 'wine', 'beer', 'caffeine', 'coffee', 'chocolate', 'aged cheese', 'monosodium glutamate', 'MSG', 'nitrate', 'nitrite',
+            'dehydration', 'fasting', 'skipping meals', 'hunger',
+            'menstruation', 'menstrual', 'hormonal', 'estrogen',
+            'weather', 'barometric pressure', 'heat', 'odors', 'perfume', 'smell',
+            'physical exertion', 'exercise', 'neck pain'
+        ]
+        expanded_query = query_en + ' | migraine ' + ' '.join(trigger_terms)
+
+    qv = embed_query(expanded_query).reshape(1, -1)  # (1, d)
     # FAISS arama: genişçe alıp (top_n) cross-encoder ile yeniden sıralayacağız
     top_n = min(MAX_K * 10, 200)
     D, I = index.search(qv, top_n)
@@ -313,7 +334,8 @@ def search(query_en: str, k: int = 5):
     # combine and sort using a weighted sum of normalized cross-encoder score and original FAISS score
     # normalize both to [0,1]
     import math
-    orig_scores = [c[1] for c in candidates]
+    # FAISS distances: smaller is better; convert to higher-is-better scores
+    orig_scores = [-c[1] for c in candidates]
     ce_scores = list(scores)
 
     def minmax_norm(arr):
@@ -328,10 +350,36 @@ def search(query_en: str, k: int = 5):
     orig_n = minmax_norm(orig_scores)
     ce_n = minmax_norm(ce_scores)
 
-    alpha = 0.6  # weight for cross-encoder; tweakable
+    alpha = RERANK_ALPHA  # weight for cross-encoder; from env
+    # Trigger-aware keyword boosting: prefer snippets that mention migraine + trigger terms together
+    def kw_boost_score(title: str, text: str) -> float:
+        if not trigger_intent:
+            return 0.0
+        txt = ((title or '') + ' ' + (text or '')).lower()
+        has_mig = any(w in txt for w in ['migraine', 'migren'])
+        has_generic = any(w in txt for w in [' trigger', 'triggers', ' precipitat', ' provok', ' cause', ' causes', ' risk factor', ' risk factors'])
+        specific = ['stress', 'sleep deprivation', 'lack of sleep', 'insufficient sleep', 'bright light', 'flicker', 'screen', 'noise',
+                    'alcohol', 'wine', 'beer', 'caffeine', 'coffee', 'chocolate', 'cheese', 'aged cheese', 'monosodium glutamate', ' msg ', 'nitrate', 'nitrite',
+                    'dehydration', 'fasting', 'skipping meals', 'hunger', 'menstruation', 'menstrual', 'hormonal', 'estrogen',
+                    'weather', 'barometric pressure', 'heat', 'odor', 'odors', 'perfume', 'smell', 'exercise', 'physical exertion', 'neck pain']
+        has_specific = any(w in txt for w in specific)
+        score = 0.0
+        if has_specific:
+            score += 2.0
+        if has_mig:
+            score += 1.0
+        if has_mig and (has_generic or has_specific):
+            score += 5.0
+        return score
+
+    kw_raw = [kw_boost_score(doc.get("title", ""), pick_snippet(doc)) for (_, _, doc) in candidates]
+    kw_n = minmax_norm(kw_raw)
+
+    gamma = 0.4 if trigger_intent else 0.0
     combined = []
-    for (idx, dist, doc), o_n, c_n in zip(candidates, orig_n, ce_n):
-        final_score = alpha * c_n + (1.0 - alpha) * o_n
+    for (idx, dist, doc), o_n, c_n, k_n in zip(candidates, orig_n, ce_n, kw_n):
+        base = alpha * c_n + (1.0 - alpha) * o_n
+        final_score = base * (1.0 - gamma) + gamma * k_n
         combined.append({
             "id": str(doc.get("id", idx)),
             "title": str(doc.get("title", "") or ""),
@@ -417,7 +465,22 @@ def qa(inp: RetrieveRequest):
     # Build prompt from EN query and top snippets (already EN in meta)
     g0 = time.time()
     prompt = build_prompt_en(q_en, used_snippets)
-    english_text = generate_one_sentence_en(prompt, max_new_tokens=192, temperature=0.0)
+    english_text = generate_one_sentence_en(prompt, max_new_tokens=256, temperature=0.5)
+    # Evidence guard for trigger/causes: require snippet-level co-occurrence of migraine + trigger terms
+    def _has_trigger_evidence(snips: list[dict]) -> bool:
+        if not snips:
+            return False
+        trigger_markers = [' trigger', 'triggers', 'precipitat', 'cause', 'causes', 'risk factor', ' risk factors', ' tetikley', ' neden']
+        specific = ['stress', 'sleep deprivation', 'lack of sleep', 'bright light', 'alcohol', 'caffeine', 'chocolate', 'cheese', 'menstruation', 'menstrual', 'hormonal', 'estrogen']
+        for s in snips:
+            txt = ((s.get('title') or '') + ' ' + (s.get('text') or '')).lower()
+            if any(w in txt for w in ['migraine', 'migren']):
+                if any(w in txt for w in trigger_markers) or any(w in txt for w in specific):
+                    return True
+        return False
+    if any(x in q_en.lower() for x in ['trigger', 'triggers', 'cause', 'causes']) or any(x in q_tr.lower() for x in ['tetikley', 'neden']):
+        if not _has_trigger_evidence(used_snippets):
+            english_text = 'insufficient'
     # Normalize to detect 'yetersiz' or 'insufficient' regardless of case/punctuation
     norm = re.sub(r'[^a-z]', '', (english_text or '').lower())
     if norm in {'yetersiz', 'insufficient'}:

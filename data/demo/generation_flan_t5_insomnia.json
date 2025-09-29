@@ -1,0 +1,95 @@
+{
+  "query_tr": "Uykusuzluğun yaygın nedenleri nelerdir?",
+  "query_en": "What are the common causes of insomnia?",
+  "retrieval_time_seconds": 0.1886,
+  "generation_time_seconds": 2.2642,
+  "total_time_seconds": 2.4527,
+  "english": {
+    "text": "Insomnia is a highly prevalent, often debilitating, and economically burdensome form of sleep disturbance caused by various situational, medical, emotional, environmental and behavioral factors."
+  },
+  "turkish": {
+    "text": "Uykusuzluk oldukça yaygın, genellikle zayıflatıcı ve çeşitli durumsal, tıbbi, duygusal, çevresel ve davranışsal faktörlerden kaynaklanan uyku rahatsızlıklarının ekonomik olarak yüklenmesidir."
+  },
+  "used_snippets": [
+    {
+      "id": "4174",
+      "title": "Derivation of Research Diagnostic Criteria for Insomnia: Report of an American Academy of Sleep Medicine Work Group",
+      "url": "https://openalex.org/W1555600854",
+      "source": "openalex",
+      "text": "Insomnia is a highly prevalent, often debilitating, and economically burdensome form of sleep disturbance caused by various situational, medical, emotional, environmental and behavioral factors. Although several consensually-derived nosologies have described numerous insomnia phenotypes, research concerning these phenotypes has been greatly hampered by a lack of widely accepted operational research diagnostic criteria (RDC) for their definition. The lack of RDC has, in turn, led to inconsistent research findings for most phenotypes largely due to the variable definitions used for their ascertainment.",
+      "score": -0.7977917790412903
+    },
+    {
+      "id": "4407",
+      "title": "Sleep and Its Disorders",
+      "url": "https://openalex.org/W2109610174",
+      "source": "openalex",
+      "text": "Sleep disorders are very prevalent in the general population and are associated with significant medical, psychological, and social disturbances. Insomnia is the most common. When chronic, it usually reflects psychological/behavioral disturbances. Most insomniacs can be evaluated in an office setting, and a multidimensional approach is recommended, including sleep hygiene measures, psychotherapy, and medication. The parasomnias, including sleepwalking, night terrors, and nightmares, have benign implications in childhood but often reflect psychopathology or significant stress in adolescents and adults and organicity in the elderly. Excessive daytime sleepiness is typically the most frequent complaint and often reflects organic dysfunction.",
+      "score": -0.7076802253723145
+    },
+    {
+      "id": "4208",
+      "title": "DSM–IV and ICSD–90 insomnia symptoms and sleep dissatisfaction",
+      "url": "https://openalex.org/W2166596753",
+      "source": "openalex",
+      "text": "Background The complex nature of insomnia and its relationship with organic and mental disorders render diagnosis problematic for epidemiologists and physicians. Method A representative UK sample (non-institutionalised, &gt; 14 years old) was interviewed by telephone ( n =4972; 79.6% participation rate) with the Sleep-EVAL system. Subjects fell into three groups according to presence of insomnia symptom (s) and/or sleep dissatisfaction. Results Insomnia symptoms occurred in 36.2% of subjects. Most of these (75.9%), however, reported no sleep dissatisfaction.",
+      "score": -0.6810582876205444
+    },
+    {
+      "id": "9677",
+      "title": "Network structure of insomnia symptoms in shift workers compared to non-shift workers.",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/36600639/",
+      "source": "pubmed",
+      "text": "Insomnia is a commonly occurring sleep problem in shift workers. So far, no studies have investigated how insomnia symptoms present differently in shift workers and non-shift workers. The purpose of this study was to compare the network structures and centrality indices of shift and non-shift workers using network analysis and network comparison test. Participants included 1339 hospital employees, where 542 were shift workers and 797 were non-shift workers. Overall, a significant difference between network structures were observed. In particular, daytime dysfunction emerged as a strongly connected symptom in shift workers, as evidenced by strength centrality.",
+      "score": -0.6800880432128906
+    },
+    {
+      "id": "4480",
+      "title": "Sleep habits and sleep disturbances among the elderly—an epidemiological survey",
+      "url": "https://openalex.org/W2040894056",
+      "source": "openalex",
+      "text": "The prevelance of insomnia was only partly related to age and gender. Multiple regression analyses, however, showed different interrelationships between insomnia and other symptoms and findings for men versus women.DMS is the most commonly reported insomnia complaint among the elderly (men 37% and women 30%). The prevalence of insomnia did not increase with age in our study group.",
+      "score": -0.6545494794845581
+    },
+    {
+      "id": "4481",
+      "title": "Interactions between sleep, stress, and metabolism: From physiological to pathological conditions",
+      "url": "https://openalex.org/W1773909344",
+      "source": "openalex",
+      "text": "Poor sleep quality due to sleep disorders and sleep loss is highly prevalent in the modern society. Underlying mechanisms show that stress is involved in the relationship between sleep and metabolism through hypothalamic–pituitary–adrenal (HPA) axis activation. Sleep deprivation and sleep disorders are associated with maladaptive changes in the HPA axis, leading to neuroendocrine dysregulation. Excess of glucocorticoids increase glucose and insulin and decrease adiponectin levels. Thus, this review provides overall view of the relationship between sleep, stress, and metabolism from basic physiology to pathological conditions, highlighting effective treatments for metabolic disturbances.",
+      "score": -0.6485382318496704
+    },
+    {
+      "id": "4161",
+      "title": "Periodic movements in sleep (nocturnal myoclonus): Relation to sleep disorders",
+      "url": "https://openalex.org/W2051115357",
+      "source": "openalex",
+      "text": "Periodic movements in sleep (PMS) are stereotyped, repetitive, nonepileptiform movements of the lower extremities. A total of 409 sleep disorder patients were studied with all-night polysomnogram recording, and 53 (13%) had PMS. Such movements occurred in a wide variety of sleep-wake disorders in addition to insomnia. The prevalence and magnitude of PMS were not statistically greater in patients with insomniac disorders than in those with syndromes of excessive daytime sleepiness or other sleep-wake disorders. The results suggest that although PMS is responsible for disturbed sleep in relatively few patients, chronic sleep-wake disturbance is associated with PMS and may lead to the development of these movements.",
+      "score": -0.6436650156974792
+    },
+    {
+      "id": "4408",
+      "title": "Sleep and Its Disorders",
+      "url": "https://openalex.org/W2109610174",
+      "source": "openalex",
+      "text": "Excessive daytime sleepiness is typically the most frequent complaint and often reflects organic dysfunction. Narcolepsy and idiopathic hypersomnia are chronic brain disorders with an onset at a young age, whereas sleep apnea is more common in middle age and is associated with obesity and cardiovascular problems. Therapeutic naps, medications, and supportive therapy are recommended for narcolepsy and hypersomnia; continuous positive airway pressure, weight loss, surgery, and oral devices are the common treatments for sleep apnea.",
+      "score": -0.6394975185394287
+    },
+    {
+      "id": "4479",
+      "title": "Sleep habits and sleep disturbances among the elderly—an epidemiological survey",
+      "url": "https://openalex.org/W2040894056",
+      "source": "openalex",
+      "text": "Daytime napping was reported by 50% of the men and 31% of the women (P < 0.001). Difficulty maintaining sleep (DMS) was the most commonly reported insomnia complaint (men 37% and women 30%). Sleep charts revealed that men woke up an average of 1.2 times per night but women 0.8 times per night (P < 0.01). Difficulty initiating sleep was reported by 9.6% and early morning awakening (EMA) by 16.7%. Pain was a strong factor contributing to EMA. There was also an increase in EMA complaints among the elderly with obstructive pulmonary diseases and systemic hypertension. The prevelance of insomnia was only partly related to age and gender.",
+      "score": -0.6390448808670044
+    },
+    {
+      "id": "4639",
+      "title": "High prevalence of sleep disturbance in cirrhosis",
+      "url": "https://openalex.org/W2081088012",
+      "source": "openalex",
+      "text": ".01). Actigraphy corroborated the deterioration of sleep parameters in cirrhotic patients with unsatisfactory sleep. The sleep disturbance in cirrhosis was not associated with clinical parameters nor with cognitive impairment. Cirrhotic subjects and patients with chronic renal failure with unsatisfactory sleep showed higher scores for depression and anxiety, raising the possibility that the effects of chronic disease may underlie the pathogenesis of sleep disturbance. However, in contrast to chronic renal failure, unsatisfactory sleep in cirrhosis was associated with delayed bedtime, delayed wake-up time, and evening chronotypology.",
+      "score": -0.6350828409194946
+    }
+  ]
+}

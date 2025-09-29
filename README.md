@@ -7,15 +7,16 @@ Basit ama sağlam bir RAG (Retrieve‑then‑Generate) zinciri:
 - Çeviri offline ve sorunsuz olması için Argos Translate ile yapılır (EN↔TR).
 
 Önemli notlar:
-- FAISS indeksinin embedding boyutu ile API’de kullanılan model aynı olmalı. Bu repo’daki hazır indeks 384 boyutunda (paraphrase‑multilingual‑MiniLM‑L12‑v2).
+- FAISS indeksinin embedding boyutu ile API’de kullanılan model aynı olmalı. Bu repo’daki eski hazır indeks 384 boyutundaydı (MiniLM). Kendi indeksinizi oluştururken hangi modelle embed ettiyseniz, sorgulama tarafında da onu kullanın.
+- CUDA ile Torch < 2.6 kullanıyorsanız, Hugging Face .bin yüklemeleri güvenlik nedeniyle engellenebilir; bunun için yerel safetensors modele geçilmiştir (BioBERT). Aşağıdaki adımları takip edin.
 - “Yetersiz” durumunda API şu şemayı döner: english.text = "insufficient", turkish.text = "yetersiz".
 
 ## Kurulum
 
 Python 3.10+ önerilir. PyTorch’u donanıma göre kurun (CPU/GPU). Aşağıdaki örnek CPU içindir.
 
-```bash
-pip install --upgrade pip
+```powershell
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
@@ -28,17 +29,23 @@ python scripts/install_argos.py
 ## Veri ve İndeks
 
 - Girdi dosyası: `data/combined.jsonl` (id, title, text, url, source alanları)
-- İndeks oluşturma:
+- İndeks oluşturma (BioBERT safetensors ile 768‑dim):
 
-```bash
-python scripts/build_index.py --in data/combined.jsonl --out data
+```powershell
+# (Opsiyonel) BioBERT'i CPU güvenli ortamda safetensors olarak dışa aktarın
+conda run -n rag-export python scripts\export_biobert_safetensors.py --model dmis-lab/biobert-base-cased-v1.1 --out models\biobert-base-cased-v1.1-sf
+
+# Ardından indeksi oluşturun (varsayılan artık yerel safetensors kullanan BioBERT yoludur)
+conda run -n rag-med python -u scripts\build_index.py --in data\combined.jsonl --out data --emb-model models\biobert-base-cased-v1.1-sf
 ```
 
-Varsayılan embedding modeli build script içinde `MODEL_NAME` ile ayarlanır. Varsayılan: `dmis-lab/biobert-base-cased-v1.1` için SentenceTransformer wrapper kullanılır. Oluşan FAISS boyutu modelin çıktısına göre belirlenir; API tarafında aynı boyutla çalışmalısınız. Bu repo’da API default’u 384‑dim (MiniLM) olarak ayarlı; kendi indeksinizi farklı boyutta üretirseniz API’yı `EMB_MODEL` ile eşleştirin.
+Notlar:
+- Build script artık `--emb-model` kabul eder; yerel bir klasör veya HF repo adı verebilirsiniz.
+- Oluşan FAISS boyutu seçtiğiniz modelin çıktı boyutudur; sorgulama/API tarafında da aynı modeli kullanmalısınız.
 
 ## Servisi Çalıştırma
 
-```bash
+```powershell
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
@@ -77,11 +84,12 @@ Dönen şema:
 
 API’ye gerek duymadan örnek üretim almak için:
 
-```bash
-python scripts/generate_qa.py --query "Uykusuzluğun yaygın nedenleri nelerdir?" --lang tr \
-  --topk 5 --cand 20 --index data/index.faiss --meta data/meta.parquet \
-  --emb-model "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2" \
-  --out data/demo_out.json
+```powershell
+# 768‑dim BioBERT ile üretilmiş indeksle demo örneği
+python scripts\generate_qa.py --query "Uykusuzluğun yaygın nedenleri nelerdir?" --lang tr \
+  --topk 5 --cand 20 --index data\index.faiss --meta data\meta.parquet \
+  --emb-model models\biobert-base-cased-v1.1-sf \
+  --out data\demo_out_biobert.json
 ```
 
 Notlar:
@@ -90,7 +98,7 @@ Notlar:
 
 ## Gelişmiş Notlar
 
-- Embedding Boyutu: API `app/main.py` içinde varsayılan embedder `paraphrase-multilingual-MiniLM-L12-v2` (384‑dim). Kendi indeksinizi başka bir modelle ürettiyseniz `EMB_MODEL` ortam değişkeniyle API başlatın ve FAISS dim eşleştiğinden emin olun.
+- Embedding Boyutu: API `app/main.py` içinde kullanılan embedder ile FAISS dim eşleşmelidir. Yeni indeksinizi BioBERT (768‑dim) ile ürettiyseniz, API’yı da aynı embedder ile başlatın.
 - Çeviri: Argos Translate offline paketleriyle çalışır; HF/çevrimiçi bağımlılık yoktur.
 
 ## Proje Yapısı

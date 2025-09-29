@@ -1,39 +1,95 @@
 {
-  "query": "causes of insomnia",
-  "retrieval_time_seconds": 0.21249550000084128,
-  "generation_time_seconds": 1.2521122999996805,
-  "total_time_seconds": 9.10946100000001,
+  "query_tr": "Uykusuzluğun yaygın nedenleri nelerdir?",
+  "query_en": "What are the common causes of insomnia?",
+  "retrieval_time_seconds": 2.1461,
+  "generation_time_seconds": 1.1795,
+  "total_time_seconds": 3.3257,
   "english": {
-    "text": "Idiopathic sleep disorder is a common cause of insomnia."
+    "text": "insufficient"
   },
   "turkish": {
-    "text": ""
+    "text": "yetersiz"
   },
   "used_snippets": [
     {
-      "pid": 11296,
-      "title": "DSM–IV and ICSD–90 insomnia symptoms and sleep dissatisfaction",
-      "url": "https://openalex.org/W2166596753"
+      "id": "4407",
+      "title": "Sleep and Its Disorders",
+      "url": "https://openalex.org/W2109610174",
+      "source": "openalex",
+      "text": "Sleep disorders are very prevalent in the general population and are associated with significant medical, psychological, and social disturbances. Insomnia is the most common. When chronic, it usually reflects psychological/behavioral disturbances. Most insomniacs can be evaluated in an office setting, and a multidimensional approach is recommended, including sleep hygiene measures, psychotherapy, and medication. The parasomnias, including sleepwalking, night terrors, and nightmares, have benign implications in childhood but often reflect psychopathology or significant stress in adolescents and adults and organicity in the elderly. Excessive daytime sleepiness is typically the most frequent complaint and often reflects organic dysfunction.",
+      "score": 0.7955733157878672
     },
     {
-      "pid": 11338,
-      "title": "Factors Impairing Daytime Performance in Patients With Sleep Apnea/Hypopnea Syndrome",
-      "url": "https://openalex.org/W2002222957"
+      "id": "4354",
+      "title": "Disturbed Sleep and Its Relationship to Alcohol Use",
+      "url": "https://openalex.org/W2069720857",
+      "source": "openalex",
+      "text": "Measurements and Results Behavioral studies suggest that up to 2 to 3 standard drinks before bedtime initially promotes sleep, but these effects diminish in as few as 3 days of continued use. Clinical investigations support a relationship between sleep disturbance and alcohol use, but variability in the definition and measurement of these domains and a preponderance of cross-sectional studies make uncertain the strength and direction of the association. Conclusions The association of insomnia with alcohol use disorders suggests that the clinical evaluation of patients with sleep problems should include a careful assessment of alcohol use. Future studies of this relationship should employ prospective designs with standardized, validated measures of both sleep and alcohol use.",
+      "score": 0.765403912372487
     },
     {
-      "pid": 12110,
-      "title": "Objective and Subjective Sleep Quality in Premenopausal, Perimenopausal, and Postmenopausal Women in the Wisconsin Sleep Cohort Study",
-      "url": "https://openalex.org/W172588831"
+      "id": "9532",
+      "title": "[Sleepiness among adolescents: etiology and multiple consequences].",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/35970642/",
+      "source": "pubmed",
+      "text": "Over the past century a dramatic decline in sleep duration among adolescents, such as more than one hour of sleep loss per night, has been reported. A debt in sleep duration could lead to sleep deprivation, a major risk factor associated with daytime sleepiness. Sleepiness refers to the inability to maintain an adequate level of alertness during the day which may result in more or less being able to control falling asleep at inappropriate times. This literature review updates on sleepiness regarding its characteristics, etiology and consequences on adolescents. Studies revealed that from 25 % to 78 % of adolescents had reported sleepiness. Its manifestations may include heavy lids, yawns, difficulties to concentrate and emotional irritability.",
+      "score": 0.746542026835758
     },
     {
-      "pid": 12395,
-      "title": "Recognition of Sleep-disordered Breathing in Children",
-      "url": "https://openalex.org/W1765095761"
+      "id": "6270",
+      "title": "Sleep disturbance and atopic dermatitis: A bidirectional relationship?",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/32097844/",
+      "source": "pubmed",
+      "text": "it is clear that the symptoms of the disease such as pruritus and scratching can affect sleep but other factors, such as changes in the immunological system related to the disease can also have an effect. We argue that this relationship may be bi-directional, with changes to the skin barrier (barrier dysfunction, alterations in its microbiome and oxidative stress) and immunological function caused by the condition impairing sleep and leading to imbalanced inflammatory pathways that exacerbate AD and other associated conditions such as impetigo. We highlight the need for further studies to investigate this correlation between AD and sleep to make the role of this relationship clearer.",
+      "score": 0.7148792789472613
     },
     {
-      "pid": 11332,
-      "title": "Electroencephalogram spindle activity during dexmedetomidine sedation and physiological sleep",
-      "url": "https://openalex.org/W2025829561"
+      "id": "9384",
+      "title": "Interplay of sleep patterns and oxidative balance score on total cardiovascular disease risk: Insights from the National Health and Nutrition Examination Survey 2005-2018.",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/38085249/",
+      "source": "pubmed",
+      "text": "Unhealthy lifestyle and diet may contribute to the development of cardiovascular disease (CVD), but limited evidence exists regarding the association between sleep patterns, oxidative stress-related exposures to diet and lifestyle, and CVD risk. We analysed data from 10 212 adults in the National Health and Nutrition Examination Survey (NHANES) database (2005-2018). Self-report questionnaires were used to collect data on sleep duration, sleepiness, and trouble sleeping, classified into three categories: healthy, intermediate, and poor sleep patterns. Healthy sleep was defined as sleeping seven to nine hours per night with no self-reported sleepiness or trouble sleeping, while intermediate and poor sleep patterns indicated one and two to three sleep problems, respectively.",
+      "score": 0.6875537891947938
+    },
+    {
+      "id": "4543",
+      "title": "Sleep Deprivation in the Rat: X. Integration and Discussion of the Findings",
+      "url": "https://openalex.org/W1569045141",
+      "source": "openalex",
+      "text": "The results of a series of studies on total and selective sleep deprivation in the rat are integrated and discussed. These studies showed that total sleep deprivation, paradoxical sleep deprivation, and disruption and/or deprivation of non-rapid eye movement (NREM) sleep produced a reliable syndrome that included death, debilitated appearance, skin lesions, increased food intake, weight loss, increased energy expenditure, decreased body temperature during the late stages of deprivation, increased plasma norepinephrine, and decreased plasma thyroxine. The significance of this syndrome for the function of sleep is not entirely clear, but several changes suggested that sleep may be necessary for effective thermoregulation.",
+      "score": 0.6735460232584911
+    },
+    {
+      "id": "9533",
+      "title": "[Sleepiness among adolescents: etiology and multiple consequences].",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/35970642/",
+      "source": "pubmed",
+      "text": "Its manifestations may include heavy lids, yawns, difficulties to concentrate and emotional irritability. In addition, while it is recommended that adolescents under 18 years-old should sleep from eight to ten hours a night, only 63 % of them actually do so. The etiology of sleep deprivation and sleepiness in this population can be explained by various biological and societal factors. First, the sleep-wake cycle of adolescents shows a biological shift from the beginning of pubertal maturation, described as a perfect storm. It refers to a social jetlag by going to sleep and waking up later and accumulating a sleep debt during weekdays which they try to reimburse during weekends. This phenomenon can be explained by physiological changes such as a slower accumulation of sleep pressure.",
+      "score": 0.6711852364824971
+    },
+    {
+      "id": "4540",
+      "title": "<i>Associations between Sleep Loss and Increased Risk of Obesity and Diabetes</i>",
+      "url": "https://openalex.org/W2070373962",
+      "source": "openalex",
+      "text": "Thus, sleep loss may alter the ability of leptin and ghrelin to accurately signal caloric need, acting in concert to produce an internal misperception of insufficient energy availability. The adverse impact of sleep deprivation on appetite regulation is likely to be driven by increased activity in neuronal populations expressing the excitatory peptides orexins that promote both waking and feeding. Consistent with the laboratory evidence, multiple epidemiologic studies have shown an association between short sleep and higher body mass index after controlling for a variety of possible confounders.",
+      "score": 0.6613358405515144
+    },
+    {
+      "id": "9534",
+      "title": "[Sleepiness among adolescents: etiology and multiple consequences].",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/35970642/",
+      "source": "pubmed",
+      "text": "This phenomenon can be explained by physiological changes such as a slower accumulation of sleep pressure. In addition to this perfect storm, environmental and societal factors contribute to the social jetlag and reduce sleep duration in adolescents. Screen exposure before bedtime can delay sleep and wake onset, which is a risk factor for sleeping debt. Substance use such as caffeine, cigarettes or electronic vaporizer, ADHD or freely available medication, alcohol, cannabis use or drug consumption could further disrupt sleep-wake cycle by stimulating, depressing or otherwise disrupting the central nervous system. Early, before 8:30 am, class start times have been associated with chronic sleep deprivation, higher level of sleepiness and delayed melatonin peak secretion.",
+      "score": 0.6605667700756744
+    },
+    {
+      "id": "4526",
+      "title": "Sleep and the metabolic syndrome",
+      "url": "https://openalex.org/W2151213279",
+      "source": "openalex",
+      "text": "This review discusses the evidence that sleep disturbances (obstructive sleep apnoea, sleep deprivation and shift work) may independently lead to the development of both insulin resistance and individual clinical components of the metabolic syndrome. The converse may also be true, in that metabolic abnormalities associated with the metabolic syndrome and insulin resistance may potentially exacerbate sleep disorders. The notion that sleep disturbances exert detrimental metabolic effects may help explain the increasing prevalence of the metabolic syndrome and insulin resistance in the general population and may have important implications for population-based approaches to combat the increasing epidemic of metabolic and cardiovascular disease.",
+      "score": 0.6565174281902333
     }
   ]
 }
