@@ -3,60 +3,127 @@
 Basit ama sağlam bir RAG (Retrieve‑then‑Generate) zinciri:
 - Verileri chunk’layıp SentenceTransformer ile embedding üretir ve FAISS’e yazar.
 - FastAPI ile iki uç sunar: `/retrieve` ve `/qa`.
-- Cevap üretimi için kısa ve tek cümlelik bir Flan‑T5 jeneratörü kullanır.
+- Cevap üretimi için kısa ve tek cümlelik Flan‑T5 jeneratörü kullanır.
 - Çeviri offline ve sorunsuz olması için Argos Translate ile yapılır (EN↔TR).
 
 Önemli notlar:
-- FAISS indeksinin embedding boyutu ile API’de kullanılan model aynı olmalı. Bu repo’daki eski hazır indeks 384 boyutundaydı (MiniLM). Kendi indeksinizi oluştururken hangi modelle embed ettiyseniz, sorgulama tarafında da onu kullanın.
-- CUDA ile Torch < 2.6 kullanıyorsanız, Hugging Face .bin yüklemeleri güvenlik nedeniyle engellenebilir; bunun için yerel safetensors modele geçilmiştir (BioBERT). Aşağıdaki adımları takip edin.
+- FAISS indeksinin embedding boyutu ile API’de kullanılan model aynı olmalı. Eski hazır indeks 384 boyutundaydı (MiniLM). Kendi indeksinizi hangi modelle embed ettiyseniz API tarafında da onu kullanın.
+- CUDA ortamlarında .bin yüklemeleri kısıtlanabileceği için yerel safetensors BioBERT kullanımı desteklenir. Aşağıdaki “BioBERT’i dışa aktarma” ve “İndeks oluşturma” adımlarını izleyin.
 - “Yetersiz” durumunda API şu şemayı döner: english.text = "insufficient", turkish.text = "yetersiz".
 
-## Kurulum
+## 1) Kurulum
 
-Python 3.10+ önerilir. PyTorch’u donanıma göre kurun (CPU/GPU). Aşağıdaki örnek CPU içindir.
+Python 3.10+ önerilir. PyTorch’u donanıma göre kurun (CPU/GPU). Aşağıdaki örnek PowerShell içindir.
 
 ```powershell
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Argos dil paketleri (en↔tr) için script:
-
-```bash
-python scripts/install_argos.py
-```
-
-## Veri ve İndeks
-
-- Girdi dosyası: `data/combined.jsonl` (id, title, text, url, source alanları)
-- İndeks oluşturma (BioBERT safetensors ile 768‑dim):
+Argos en↔tr dil paketleri (offline çeviri) için:
 
 ```powershell
-# (Opsiyonel) BioBERT'i CPU güvenli ortamda safetensors olarak dışa aktarın
-conda run -n rag-export python scripts\export_biobert_safetensors.py --model dmis-lab/biobert-base-cased-v1.1 --out models\biobert-base-cased-v1.1-sf
+python scripts\install_argos.py
+```
 
-# Ardından indeksi oluşturun (varsayılan artık yerel safetensors kullanan BioBERT yoludur)
-conda run -n rag-med python -u scripts\build_index.py --in data\combined.jsonl --out data --emb-model models\biobert-base-cased-v1.1-sf
+## 2) Veri Hazırlama (opsiyonel)
+
+Repoda hazır küçük bir birleşik veri dosyası var: `data/combined_small.jsonl`. Kendi verinizi oluşturmak isterseniz:
+
+1) OpenAlex’tan çekin:
+
+```powershell
+python scripts\fetch_openalex.py --query "sleep insomnia" --retmax 500 --out data\raw\openalex_sleep.jsonl --overwrite
+```
+
+2) PubMed’ten çekin (NCBI API için email belirtin):
+
+```powershell
+python scripts\fetch_pubmed.py --query "insomnia" --retmax 1000 --batch-size 50 --email you@example.com --out data\raw\pubmed_sleep.jsonl --overwrite --dedup --mindate 2015
+```
+
+3) Hepsini birleştirin (basit dedup ile):
+
+```powershell
+python scripts\build_combined_from_raw.py --raw-dir data\raw --out data\combined.jsonl --dedup-mode url+hash
+```
+
+Not: İsterseniz mevcut `data\combined_small.jsonl` dosyasını doğrudan kullanabilirsiniz.
+
+## 3) BioBERT’i safetensors olarak dışa aktarma (önerilen)
+
+Bu adım BioBERT’i yerel klasöre güvenli şekilde indirip `model.safetensors` olarak kaydeder.
+
+```powershell
+python scripts\export_biobert_safetensors.py --model dmis-lab/biobert-base-cased-v1.1 --out models\biobert-base-cased-v1.1-sf
+```
+
+Çıktı klasörü: `models\biobert-base-cased-v1.1-sf` (config + tokenizer + model.safetensors)
+
+## 4) İndeks oluşturma
+
+- Girdi dosyası: `data/combined_small.jsonl` (veya 2. adımda oluşturduğunuz `data/combined.jsonl`)
+- BioBERT safetensors ile 768‑dim indeks üretimi (çıktı `data\index.faiss`, `data\meta.parquet`):
+
+```powershell
+# Hazır küçük veriyle (varsayılan dosya: data\combined_small.jsonl)
+python -u scripts\build_index.py --in data\combined_small.jsonl --out data --emb-model models\biobert-base-cased-v1.1-sf
+
+# Kendi oluşturduğunuz birleşik veriyle
+python -u scripts\build_index.py --in data\combined.jsonl --out data --emb-model models\biobert-base-cased-v1.1-sf
 ```
 
 Notlar:
-- Build script artık `--emb-model` kabul eder; yerel bir klasör veya HF repo adı verebilirsiniz.
-- Oluşan FAISS boyutu seçtiğiniz modelin çıktı boyutudur; sorgulama/API tarafında da aynı modeli kullanmalısınız.
+- `--emb-model` alanına yerel bir klasör (ör. `models\biobert-base-cased-v1.1-sf`) veya bir HF model adı verebilirsiniz.
+- FAISS dim, seçtiğiniz embedding modelinin çıktı boyutudur; API tarafında da aynı embedder kullanılmalıdır.
 
-## Servisi Çalıştırma
+## Hazır ZIP artifacts ile hızlı kurulum (Model + İndeks)
+
+Ağır dosyaları repoya eklemek yerine GitHub Releases altından ZIP olarak dağıtabilirsiniz. Bu yöntemde 3) ve 4) adımlarını atlayabilirsiniz.
+
+1) ZIP’leri indir (PowerShell)
+
+```powershell
+mkdir artifacts -ea 0
+# En güncel release altındaki asset’leri indirir (release asset yükledikten sonra çalışır)
+Invoke-WebRequest -Uri "https://github.com/buketcoskunkurt/medical_rag/releases/latest/download/biobert_model.zip" -OutFile artifacts\biobert_model.zip
+Invoke-WebRequest -Uri "https://github.com/buketcoskunkurt/medical_rag/releases/latest/download/faiss_index_biobert.zip" -OutFile artifacts\faiss_index_biobert.zip
+```
+
+2) ZIP’leri doğru konuma aç
+
+```powershell
+# Model (BioBERT) → models\biobert-base-cased-v1.1-sf\
+Expand-Archive artifacts\biobert_model.zip -DestinationPath models\biobert-base-cased-v1.1-sf -Force
+
+# İndeks → data\ (index.faiss ve meta.parquet bu klasörde olmalı)
+Expand-Archive artifacts\faiss_index_biobert.zip -DestinationPath data -Force
+```
+
+Beklenen dosyalar:
+- models\biobert-base-cased-v1.1-sf\model.safetensors, config.json, tokenizer dosyaları
+- data\index.faiss, data\meta.parquet
+
+3) İndeks boyutunu doğrula (BioBERT = 768-dim)
+
+```powershell
+python -c "import faiss; print(f'FAISS dim = {faiss.read_index(r"data\\index.faiss").d}')"
+```
+
+Çıktı 768 olmalı. Farklıysa indeks ile embed modeli eşleşmiyor demektir.
+
+## 5) Servisi çalıştırma
 
 ```powershell
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
-#URL
-http://localhost:8000/health 
-http://localhost:8000/docs
 
-### /health
-Basit durum: index boyutu ve dim bilgisi.
+Sonra:
+- http://localhost:8000/health (index boyutu/dim ve cihaz bilgisi)
+- http://localhost:8000/docs (Swagger UI)
 
 ### /retrieve (POST)
-Gövde:
+Örnek gövde:
 
 ```json
 {"question":"Uykusuzluğun yaygın nedenleri nelerdir?", "k":5}
@@ -68,7 +135,7 @@ Dönen şema:
 - results[]: id, title (TR), title_en (EN), url, score, snippet (TR), snippet_en (EN)
 
 ### /qa (POST)
-Gövde: 
+Örnek gövde:
 
 ```json
 {"question":"Uykusuzluğun yaygın nedenleri nelerdir?", "k":5}
@@ -83,26 +150,22 @@ Dönen şema:
 
 “Yetersiz” halinde: english.text = "insufficient", turkish.text = "yetersiz".
 
-## Basit UI (Streamlit)
+## 6) Basit UI (Streamlit)
 
-API üzerinde basit bir arayüzle soru sormak için Streamlit uygulaması eklenmiştir.
-
-Çalıştırma:
+API üzerinde basit bir arayüzle soru sormak için:
 
 ```powershell
-conda run -n rag-med streamlit run ui\streamlit_app.py
+streamlit run ui\streamlit_app.py
 ```
 
 Notlar:
-- API varsayılan olarak `http://localhost:8000` varsayılır; sol panelden değiştirebilirsiniz.
-- Soru alanına yazıp “Ask” butonuna basın. Üstte tek cümlelik İngilizce cevap, altta URL ve kaynak bilgisiyle referanslar listelenir.
+- API varsayılanı `http://localhost:8000`’dir; sol panelden değiştirebilirsiniz.
+- Soru yazıp “Ask” ile çalıştırın; üstte tek cümlelik EN yanıt, altta referanslar listelenir.
 
-## CLI Demo (tek cümlelik QA)
-
-API’ye gerek duymadan örnek üretim almak için:
+## 7) CLI Demo (tek cümlelik QA)
 
 ```powershell
-# 768‑dim BioBERT ile üretilmiş indeksle demo örneği
+# 768‑dim BioBERT ile üretilmiş indeksle demo
 python scripts\generate_qa.py --query "Uykusuzluğun yaygın nedenleri nelerdir?" --lang tr \
   --topk 5 --cand 20 --index data\index.faiss --meta data\meta.parquet \
   --emb-model models\biobert-base-cased-v1.1-sf \
@@ -110,28 +173,35 @@ python scripts\generate_qa.py --query "Uykusuzluğun yaygın nedenleri nelerdir?
 ```
 
 Notlar:
-- `--lang tr` ile TR sorular EN’e çevrilir, üretim EN yapılır, sonra TR’ye çevrilir.
+- `--lang tr` ile TR soru EN’e çevrilir, üretim EN yapılır, tekrar TR’ye çevrilir.
 - “Yetersiz” ise çıktı: EN="insufficient", TR="yetersiz".
 
-## Gelişmiş Notlar
+## İpuçları ve Sorun Giderme
 
-- Embedding Boyutu: API `app/main.py` içinde kullanılan embedder ile FAISS dim eşleşmelidir. Yeni indeksinizi BioBERT (768‑dim) ile ürettiyseniz, API’yı da aynı embedder ile başlatın.
-- Çeviri: Argos Translate offline paketleriyle çalışır; HF/çevrimiçi bağımlılık yoktur.
+- Boyut eşleşmesi: `/health` çıktısında `faiss_dim` ile `expected_embed_dim` değerlerinin eşit olduğundan emin olun. Eşit değilse indeksi aynı embedder (ör. BioBERT 768-dim) ile yeniden oluşturun.
+- TorchVision import uyarıları görürseniz, sadece metin modelleri kullandığımız için genelde güvenle yok sayılabilir; yine de isterseniz ortam değişkeni olarak `TRANSFORMERS_NO_TORCHVISION=1` ayarlayabilirsiniz.
+- Parquet yazımı için `pyarrow` yoksa script otomatik olarak `meta.jsonl` üretir; API tarafı `meta.parquet` bekler, bu yüzden `pyarrow` kurulu olduğundan emin olun.
 
 ## Proje Yapısı
 
 ```
 medical_rag/
   app/
-    main.py              # FastAPI uygulaması (/retrieve, /qa)
+    main.py              # FastAPI (/retrieve, /qa)
   scripts/
-    build_index.py       # combined.jsonl -> index.faiss + meta.parquet
-    generate_qa.py       # Tek cümlelik QA demo scripti
-    install_argos.py     # Argos en↔tr paketleri kurulumu
+    build_index.py       # combined*.jsonl -> index.faiss + meta.parquet
+    build_combined_from_raw.py
+    fetch_openalex.py
+    fetch_pubmed.py
+    generate_qa.py       # Tek cümlelik QA demo
+    install_argos.py     # Argos en↔tr paketleri
+    export_biobert_safetensors.py
   data/
-    combined.jsonl       # Girdi veri seti
+    combined_small.jsonl # Örnek küçük veri
     index.faiss
     meta.parquet
+  models/
+    biobert-base-cased-v1.1-sf/  # Yerel safetensors BioBERT (önerilen)
   requirements.txt
   README.md
 ```
