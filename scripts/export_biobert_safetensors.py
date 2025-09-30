@@ -34,7 +34,8 @@ def main():
     state = mdl.state_dict()
     # Ensure contiguous CPU tensors for reliability
     state = {k: v.contiguous().cpu() for k, v in state.items()}
-    save_file(state, str(out_dir / "model.safetensors"))
+    # Include minimal metadata so downstream loaders can inspect format safely
+    save_file(state, str(out_dir / "model.safetensors"), metadata={"format": "pt"})
 
     print("[export] saving config + tokenizer …")
     mdl.config.save_pretrained(out_dir)

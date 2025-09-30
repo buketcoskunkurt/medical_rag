@@ -1,15 +1,10 @@
 # medical_rag
 
-Basit ama sağlam bir RAG (Retrieve‑then‑Generate) zinciri:
+Basit ama sağlam bir RAG (Retrieve Augmented Generation) zinciri:
 - Verileri chunk’layıp SentenceTransformer ile embedding üretir ve FAISS’e yazar.
 - FastAPI ile iki uç sunar: `/retrieve` ve `/qa`.
 - Cevap üretimi için kısa ve tek cümlelik Flan‑T5 jeneratörü kullanır.
 - Çeviri offline ve sorunsuz olması için Argos Translate ile yapılır (EN↔TR).
-
-Önemli notlar:
-- FAISS indeksinin embedding boyutu ile API’de kullanılan model aynı olmalı. Eski hazır indeks 384 boyutundaydı (MiniLM). Kendi indeksinizi hangi modelle embed ettiyseniz API tarafında da onu kullanın.
-- CUDA ortamlarında .bin yüklemeleri kısıtlanabileceği için yerel safetensors BioBERT kullanımı desteklenir. Aşağıdaki “BioBERT’i dışa aktarma” ve “İndeks oluşturma” adımlarını izleyin.
-- “Yetersiz” durumunda API şu şemayı döner: english.text = "insufficient", turkish.text = "yetersiz".
 
 ## 1) Kurulum
 
@@ -79,15 +74,18 @@ Notlar:
 
 ## Hazır ZIP artifacts ile hızlı kurulum (Model + İndeks)
 
-Ağır dosyaları repoya eklemek yerine GitHub Releases altından ZIP olarak dağıtabilirsiniz. Bu yöntemde 3) ve 4) adımlarını atlayabilirsiniz.
 
-1) ZIP’leri indir (PowerShell)
+1) ZIP’leri indir (GitHub Releases)
+
+- GitHub’da Releases sayfasını açın: https://github.com/buketcoskunkurt/medical_rag/releases
+- Aşağıdaki iki dosyayı indirin:
+  - biobert_model.zip (model)
+  - faiss_index_biobert.zip (index + meta)
+- İsterseniz yerelde `artifacts/` klasörü oluşturup dosyaları oraya koyabilirsiniz:
 
 ```powershell
 mkdir artifacts -ea 0
-# En güncel release altındaki asset’leri indirir (release asset yükledikten sonra çalışır)
-Invoke-WebRequest -Uri "https://github.com/buketcoskunkurt/medical_rag/releases/latest/download/biobert_model.zip" -OutFile artifacts\biobert_model.zip
-Invoke-WebRequest -Uri "https://github.com/buketcoskunkurt/medical_rag/releases/latest/download/faiss_index_biobert.zip" -OutFile artifacts\faiss_index_biobert.zip
+# İndirilen zip dosyalarını artifacts/ içine taşıyın (Explorer veya PowerShell ile)
 ```
 
 2) ZIP’leri doğru konuma aç

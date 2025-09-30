@@ -17,7 +17,7 @@ CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "150")) # chunk'lar arasÄ±ndaki Ã
 # transformers wrapper or change MODEL_NAME via env.
 # Default to local safetensors export to avoid torch.load restrictions in CUDA envs < 2.6
 MODEL_NAME = os.getenv("MODEL_NAME", "models/biobert-base-cased-v1.1-sf")
-DATA_IN = Path("data/combined.jsonl")
+DATA_IN = Path("data/combined_small.jsonl")
 OUT_DIR = Path("data")
 
 import argparse
