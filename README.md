@@ -160,24 +160,9 @@ Notlar:
 - API varsayılanı `http://localhost:8000`’dir; sol panelden değiştirebilirsiniz.
 - Soru yazıp “Ask” ile çalıştırın; üstte tek cümlelik EN yanıt, altta referanslar listelenir.
 
-## 7) CLI Demo (tek cümlelik QA)
-
-```powershell
-# 768‑dim BioBERT ile üretilmiş indeksle demo
-python scripts\generate_qa.py --query "Uykusuzluğun yaygın nedenleri nelerdir?" --lang tr \
-  --topk 5 --cand 20 --index data\index.faiss --meta data\meta.parquet \
-  --emb-model models\biobert-base-cased-v1.1-sf \
-  --out data\demo_out_biobert.json
-```
-
-Notlar:
-- `--lang tr` ile TR soru EN’e çevrilir, üretim EN yapılır, tekrar TR’ye çevrilir.
-- “Yetersiz” ise çıktı: EN="insufficient", TR="yetersiz".
-
 ## İpuçları ve Sorun Giderme
 
 - Boyut eşleşmesi: `/health` çıktısında `faiss_dim` ile `expected_embed_dim` değerlerinin eşit olduğundan emin olun. Eşit değilse indeksi aynı embedder (ör. BioBERT 768-dim) ile yeniden oluşturun.
-- TorchVision import uyarıları görürseniz, sadece metin modelleri kullandığımız için genelde güvenle yok sayılabilir; yine de isterseniz ortam değişkeni olarak `TRANSFORMERS_NO_TORCHVISION=1` ayarlayabilirsiniz.
 - Parquet yazımı için `pyarrow` yoksa script otomatik olarak `meta.jsonl` üretir; API tarafı `meta.parquet` bekler, bu yüzden `pyarrow` kurulu olduğundan emin olun.
 
 ## Proje Yapısı
@@ -187,11 +172,14 @@ medical_rag/
   app/
     main.py              # FastAPI (/retrieve, /qa)
   scripts/
+    test/
+      evaluate_metrics_en.py
+      evaluate_perplexity_en.py
+      run_performance_tests_en.py
     build_index.py       # combined*.jsonl -> index.faiss + meta.parquet
     build_combined_from_raw.py
     fetch_openalex.py
     fetch_pubmed.py
-    generate_qa.py       # Tek cümlelik QA demo
     install_argos.py     # Argos en↔tr paketleri
     export_biobert_safetensors.py
   data/
