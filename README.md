@@ -48,6 +48,9 @@ Notlar:
 ```powershell
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
+#URL
+http://localhost:8000/health 
+http://localhost:8000/docs
 
 ### /health
 Basit durum: index boyutu ve dim bilgisi.
@@ -65,7 +68,7 @@ Dönen şema:
 - results[]: id, title (TR), title_en (EN), url, score, snippet (TR), snippet_en (EN)
 
 ### /qa (POST)
-Gövde:
+Gövde: 
 
 ```json
 {"question":"Uykusuzluğun yaygın nedenleri nelerdir?", "k":5}
@@ -79,6 +82,20 @@ Dönen şema:
 - used_snippets: [{ id, title, url, text, score }]
 
 “Yetersiz” halinde: english.text = "insufficient", turkish.text = "yetersiz".
+
+## Basit UI (Streamlit)
+
+API üzerinde basit bir arayüzle soru sormak için Streamlit uygulaması eklenmiştir.
+
+Çalıştırma:
+
+```powershell
+conda run -n rag-med streamlit run ui\streamlit_app.py
+```
+
+Notlar:
+- API varsayılan olarak `http://localhost:8000` varsayılır; sol panelden değiştirebilirsiniz.
+- Soru alanına yazıp “Ask” butonuna basın. Üstte tek cümlelik İngilizce cevap, altta URL ve kaynak bilgisiyle referanslar listelenir.
 
 ## CLI Demo (tek cümlelik QA)
 

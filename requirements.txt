@@ -11,3 +11,4 @@ argostranslate>=1.9.6
 bert-score>=0.3.13
 rouge-score>=0.1.2
 nltk>=3.9
+streamlit>=1.37.0

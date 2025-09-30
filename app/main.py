@@ -549,7 +549,7 @@ def qa(inp: RetrieveRequest):
     except Exception:
         pass
 
-    return QAResponse(
+    resp = QAResponse(
         query_tr=q_tr,
         query_en=q_en,
         retrieval_time_seconds=round(r1 - r0, 4),
@@ -559,6 +559,15 @@ def qa(inp: RetrieveRequest):
         turkish={"text": turkish_text},
         used_snippets=used_snippets,
     )
+
+    # Best-effort SQLite logging (optional via env)
+    try:
+        from .sqlite_logger import log_qa
+        log_qa(resp.model_dump(), k=inp.k)
+    except Exception:
+        pass
+
+    return resp
 
 @app.get("/health")
 def health():
