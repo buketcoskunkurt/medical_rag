@@ -31,13 +31,15 @@ EMBED_DIM = _hf.get_word_embedding_dimension()
 # generator model (default per Option A): Flan-T5 base
 GENERATOR_MODEL = os.getenv("GENERATOR_MODEL", "google/flan-t5-base")
 
-MAX_K = 20  # Maksimum sonuç sayısı
+#cross-encoder model for re-ranking
+MAX_K = 20   # Kullanıcıya dönecek max sonuç/aday
 CROSS_ENCODER_MODEL = os.getenv("CROSS_ENCODER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
 _cross_encoder = CrossEncoder(CROSS_ENCODER_MODEL)
-RERANK_ALPHA = float(os.getenv("RERANK_ALPHA", "0.6"))
-TOPN_MULT = int(os.getenv("TOPN_MULT", "20"))
-TOPN_CAP = int(os.getenv("TOPN_CAP", "500"))
-EVIDENCE_CE_MIN = float(os.getenv("EVIDENCE_CE_MIN", "0.2"))  # normalized CE score threshold for evidence guard
+RERANK_ALPHA = float(os.getenv("RERANK_ALPHA", "0.6")) # CE vs FAISS ağırlığı (α)
+TOPN_MULT = int(os.getenv("TOPN_MULT", "20")) # FAISS’ten geniş aday havuzu çekmek için çarpan
+TOPN_CAP = int(os.getenv("TOPN_CAP", "500")) # CE’yi yormamak için üst sınır
+EVIDENCE_CE_MIN = float(os.getenv("EVIDENCE_CE_MIN", "0.2")) # CE normalleştirilmiş skor alt eşiği (kanıt filtresi)
+
 if not os.path.exists(INDEX_PATH):
     raise FileNotFoundError(f"FAISS index bulunamadı: {INDEX_PATH}")
 
@@ -59,7 +61,7 @@ if not os.path.exists(META_PATH):
 meta_df = pd.read_parquet(META_PATH)
 meta_data = meta_df.to_dict(orient="records")
 
-# Komşu chunk'ları önceden hesapla
+# Komşu chunk haritası (Bozuk/kesilmiş snippet’leri önceki chunk’ın kuyruğuyla tamamla)
 _neighbors_map = {}
 for m in meta_data:
     mid = str(m.get("id", ""))
@@ -74,7 +76,7 @@ for k in _neighbors_map:
     _neighbors_map[k].sort()
 
 
-
+# API Şeması
 app = FastAPI(title="Medical RAG API", version="1.0")
 
 class RetrieveRequest(BaseModel):
@@ -106,6 +108,7 @@ class QAResponse(BaseModel):
     turkish: dict
     used_snippets: list
 
+#Çeviri fonksiyonları
 def to_tr(text: str, source_hint: str = "en") -> str:
     # Prefer Argos offline translation if available; fallback: return text
     try:
@@ -151,6 +154,7 @@ try:
 except Exception:
     _GEN_DEVICE = "cpu"
 
+#Prompt oluşturma ve işleme fonksiyonları
 def build_prompt_en(query: str, snippets: List[dict]) -> str:
     parts = []
     parts.append('Answer the user query using ONLY the provided snippets. If you cannot answer from the snippets, reply with exactly the single word: yetersiz')
@@ -300,10 +304,9 @@ def pick_snippet(doc: dict) -> str:
 # ======================================================================
 def embed_query(text: str) -> np.ndarray:
     """
-    DEMO amaçlı: deterministik 'mock' embedding.
-    (Gerçek projede burada sentence-transformers vb. ile gerçek embedding üret)
+    Sorgu metnini SentenceTransformer ile encode eder, L2-normalize eder ve float32 vektör döner.
+    FAISS araması için tek örnek (1, d) şekline getirilir.
     """
-    # use the same encoder as the index builder; returns normalized float32 vector
     if not text:
         return np.zeros(EMBED_DIM, dtype="float32")
     emb = _embed_model.encode([text], convert_to_numpy=True, normalize_embeddings=True)
@@ -321,7 +324,7 @@ def search(query_en: str, k: int = 5):
     # Use the query directly without condition-specific expansions
     qv = embed_query(query_en).reshape(1, -1)  # (1, d)
     # FAISS arama: genişçe alıp (top_n) cross-encoder ile yeniden sıralayacağız
-    top_n = min(MAX_K * 10, 200)
+    top_n = min(MAX_K * TOPN_MULT, TOPN_CAP) 
     D, I = index.search(qv, top_n)
 
     candidates = []
@@ -574,9 +577,9 @@ def health():
     # Basit durum raporu
     return {
         "status": "ok",
-        "index_size": index.ntotal,
+        "index_size": index.ntotal, # toplam chunk sayısı
         "faiss_dim": index.d,
-        "expected_embed_dim": EMBED_DIM,
-        "meta_rows": len(meta_data),
+        "expected_embed_dim": EMBED_DIM, 
+        "meta_rows": len(meta_data), # toplam meta satır sayısı
         "generator_device": _GEN_DEVICE,
     }

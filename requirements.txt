@@ -12,3 +12,5 @@ bert-score>=0.3.13
 rouge-score>=0.1.2
 nltk>=3.9
 streamlit>=1.37.0
+pyarrow>=14.0.0
+fastparquet>=2024.5.0

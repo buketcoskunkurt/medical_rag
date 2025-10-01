@@ -191,3 +191,72 @@ medical_rag/
   requirements.txt
   README.md
 ```
+
+## Docker 🐳
+
+Bu projeyi Docker ile paketleyip çalıştırabilirsiniz. Image, CUDA destekli bir runtime (nvidia/cuda:12.1) üzerinde Python 3.10 kullanır; FAISS CPU’da, jeneratör (Flan‑T5) ise GPU varsa otomatik olarak CUDA’yı kullanır (app/main.py içindeki torch.cuda.is_available kontrolü sayesinde).
+
+Önkoşullar:
+- Docker kurulu olmalı
+- GPU kullanacaksanız: NVIDIA sürücüleri + nvidia-container-toolkit
+
+1) Build
+
+```powershell
+docker build -t medical-rag .
+```
+
+2) Çalıştır (CPU)
+
+```powershell
+docker run --rm -p 8080:8080 `
+  -v "${PWD}\data:/app/data" `
+  -v "${PWD}\models:/app/models" `
+  medical-rag
+```
+
+3) Sağlık testi
+
+```powershell
+Invoke-WebRequest -Uri "http://localhost:8080/health" -Method GET
+```
+
+4) Örnek QA çağrısı
+
+```powershell
+Invoke-WebRequest -Uri "http://localhost:8080/qa" `
+  -Method POST `
+  -Headers @{ "Content-Type" = "application/json" } `
+  -Body '{"question":"What are migraine triggers?","k":5}'
+```
+
+5) GPU ile çalıştırma (opsiyonel)
+
+```powershell
+docker run --rm --gpus all -p 8080:8080 `
+  -v "${PWD}\data:/app/data" `
+  -v "${PWD}\models:/app/models" `
+  medical-rag
+```
+
+6) Streamlit UI(Opsiyonel)
+Repo’da bir Streamlit arayüzü varsa (streamlit_app.py), Docker’daki API’ya bağlanarak yerelden çalıştırabilirsiniz.
+
+Önkoşul:
+```powershell
+pip install streamlit>=1.37.0
+```
+Çalıştırma:
+
+API konteynerini başlatın (ayrı terminalde açık kalsın)
+Streamlit arayüzünü kendi makinenizde çalıştırın
+```powershell
+streamlit run ui/streamlit_app.py --server.port 8501
+```
+Streamlit uygulamasında API taban URL’sini "http://localhost:8080" olarak değiştirin.
+
+
+Notlar:
+- Image, modelleri ve veriyi içermez. `/models` ve `/data` host’tan volume olarak bağlanmalıdır; app içinde `/app/models` ve `/app/data` olarak erişilir.
+- FAISS CPU paketidir (faiss-cpu). Retrieval CPU üzerinde çalışır; jeneratör model (Flan‑T5) GPU varsa otomatik CUDA’ya geçer.
+- İlk çalıştırmada modelleri (Flan‑T5 vb.) indirmek birkaç dakikanızı alabilir; önceden host’taki `models/` klasörüne indirdiğinizde konteyner direkt kullanır.
