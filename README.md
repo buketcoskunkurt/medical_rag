@@ -1,10 +1,17 @@
-# medical_rag
+## Proje Açıklaması  
 
-Basit ama sağlam bir RAG (Retrieve Augmented Generation) zinciri:
-- Verileri chunk’layıp SentenceTransformer ile embedding üretir ve FAISS’e yazar.
-- FastAPI ile iki uç sunar: `/retrieve` ve `/qa`.
-- Cevap üretimi için kısa ve tek cümlelik Flan‑T5 jeneratörü kullanır.
-- Çeviri offline ve sorunsuz olması için Argos Translate ile yapılır (EN↔TR).
+Bu proje, medikal sorulara bilimsel kaynaklardan desteklenmiş yanıtlar üreten bir **Retrieval-Augmented Generation (RAG)** sistemidir.  
+
+- **Chunking & Embedding:** Makale özetleri belirli boyutlarda parçalanır ve **SentenceTransformer (BioBERT)** kullanılarak embedding vektörleri üretilir. Bu vektörler **FAISS** veritabanında saklanır.  
+- **Retrieval:** Kullanıcı soruları embedding’e dönüştürülüp FAISS üzerinde arama yapılır, sonuçlar **Cross-Encoder** ve **Lexical Boost** yöntemleriyle yeniden sıralanır.  
+- **Generation:** Elde edilen snippet’ler kullanılarak **Flan-T5** jeneratörü ile kısa, tek cümlelik yanıtlar üretilir.  
+- **Çeviri:** Yanıtlar İngilizce üretilir, ardından **Argos Translate** ile Türkçe’ye çevrilerek çift dil desteği sağlanır.  
+- **API:** Sistem, **FastAPI** ile `/retrieve` ve `/qa` uç noktaları üzerinden erişilebilir.  
+
+Ek özellikler:  
+- **Performans metrikleri** (Retrieval, Generation süreleri)  
+- **Opsiyonel loglama** (SQLite)  
+- **Opsiyonel Streamlit UI** (kolay demo arayüzü)  
 
 ## 1) Kurulum
 
@@ -23,27 +30,38 @@ python scripts\install_argos.py
 
 ## 2) Veri Hazırlama (opsiyonel)
 
-Repoda hazır küçük bir birleşik veri dosyası var: `data/combined_small.jsonl`. Kendi verinizi oluşturmak isterseniz:
+Repoda hazır iki örnek veri dosyası bulunmaktadır:  
+
+- `data/combined_small.jsonl` → Küçük boyutlu set (~3.8K abstract) — hızlı test ve geliştirme için.  
+- `data/combined_large.jsonl` → Büyük boyutlu set (~23K abstract) — daha kapsamlı arama ve değerlendirme için.  
+
+Varsayılan kurulum küçük veri setini kullanır. Daha kapsamlı deneyim için `combined_large.jsonl` dosyasını FAISS indexleme aşamasında kullanabilirsiniz.
+
+### Kendi verinizi oluşturmak isterseniz 
 
 1) OpenAlex’tan çekin:
 
 ```powershell
-python scripts\fetch_openalex.py --query "sleep insomnia" --retmax 500 --out data\raw\openalex_sleep.jsonl --overwrite
+python scripts\fetch_openalex.py --query "sleep insomnia" --retmax 500 `
+  --out data\raw\openalex_sleep.jsonl --overwrite
 ```
 
 2) PubMed’ten çekin (NCBI API için email belirtin):
 
 ```powershell
-python scripts\fetch_pubmed.py --query "insomnia" --retmax 1000 --batch-size 50 --email you@example.com --out data\raw\pubmed_sleep.jsonl --overwrite --dedup --mindate 2015
+python scripts\fetch_pubmed.py --query "insomnia" --retmax 1000 --batch-size 50 `
+  --email you@example.com --out data\raw\pubmed_sleep.jsonl --overwrite --dedup --mindate 2015
 ```
 
 3) Hepsini birleştirin (basit dedup ile):
 
 ```powershell
-python scripts\build_combined_from_raw.py --raw-dir data\raw --out data\combined.jsonl --dedup-mode url+hash
+python scripts/export_biobert_safetensors.py `
+  --model dmis-lab/biobert-base-cased-v1.1 `
+  --out models/biobert-base-cased-v1.1-sf
 ```
 
-Not: İsterseniz mevcut `data\combined_small.jsonl` dosyasını doğrudan kullanabilirsiniz.
+Not: İsterseniz yukarıdaki adımları uygulamadan, doğrudan hazır gelen `data\combined_small.jsonl` veya `data\combined_large.jsonl` dosyalarını kullanabilirsiniz.
 
 ## 3) BioBERT’i safetensors olarak dışa aktarma (önerilen)
 
@@ -57,23 +75,25 @@ python scripts\export_biobert_safetensors.py --model dmis-lab/biobert-base-cased
 
 ## 4) İndeks oluşturma
 
-- Girdi dosyası: `data/combined_small.jsonl` (veya 2. adımda oluşturduğunuz `data/combined.jsonl`)
-- BioBERT safetensors ile 768‑dim indeks üretimi (çıktı `data\index.faiss`, `data\meta.parquet`):
+FAISS aramaları için önce veriyi embedding vektörlerine dönüştürüp indekslemeniz gerekir.  
+
+- Girdi dosyası seçenekleri:  
+  - `data/combined_small.jsonl` → Küçük set (~3.8K abstract) — hızlı test için  
+  - `data/combined_large.jsonl` → Büyük set (~23K abstract) — daha kapsamlı deneyler için  
+  - `data/combined.jsonl` → 2. adımda kendiniz oluşturduysanız  
+
+- Embedding modeli: **BioBERT safetensors** (`models/biobert-base-cased-v1.1-sf`)  
+- Çıktı dosyaları: `data/index.faiss` ve `data/meta.parquet`  
+
+### Örnek Komut (PowerShell)
 
 ```powershell
-# Hazır küçük veriyle (varsayılan dosya: data\combined_small.jsonl)
 python -u scripts\build_index.py --in data\combined_small.jsonl --out data --emb-model models\biobert-base-cased-v1.1-sf
-
-# Kendi oluşturduğunuz birleşik veriyle
-python -u scripts\build_index.py --in data\combined.jsonl --out data --emb-model models\biobert-base-cased-v1.1-sf
 ```
 
-Notlar:
-- `--emb-model` alanına yerel bir klasör (ör. `models\biobert-base-cased-v1.1-sf`) veya bir HF model adı verebilirsiniz.
-- FAISS dim, seçtiğiniz embedding modelinin çıktı boyutudur; API tarafında da aynı embedder kullanılmalıdır.
+Notlar: - --emb-model alanına yerel bir klasör (ör. models\biobert-base-cased-v1.1-sf) veya bir HF model adı verebilirsiniz. - FAISS dim, seçtiğiniz embedding modelinin çıktı boyutudur; API tarafında da aynı embedder kullanılmalıdır.
 
 ## Hazır ZIP artifacts ile hızlı kurulum (Model + İndeks)
-
 
 1) ZIP’leri indir (GitHub Releases)
 
@@ -105,7 +125,7 @@ Beklenen dosyalar:
 3) İndeks boyutunu doğrula (BioBERT = 768-dim)
 
 ```powershell
-python -c "import faiss; print(f'FAISS dim = {faiss.read_index(r"data\\index.faiss").d}')"
+python -c "import faiss; print('FAISS dim =', faiss.read_index('data/index.faiss').d)"
 ```
 
 Çıktı 768 olmalı. Farklıysa indeks ile embed modeli eşleşmiyor demektir.
@@ -160,6 +180,11 @@ Notlar:
 - API varsayılanı `http://localhost:8000`’dir; sol panelden değiştirebilirsiniz.
 - Soru yazıp “Ask” ile çalıştırın; üstte tek cümlelik EN yanıt, altta referanslar listelenir.
 
+## 7) Loglama (Opsiyonel)
+
+API çağrıları SQLite veritabanına loglanabilir (varsayılan local çalışma için).  
+Docker image içerisinde bu özellik devre dışı bırakılmıştır.
+
 ## İpuçları ve Sorun Giderme
 
 - Boyut eşleşmesi: `/health` çıktısında `faiss_dim` ile `expected_embed_dim` değerlerinin eşit olduğundan emin olun. Eşit değilse indeksi aynı embedder (ör. BioBERT 768-dim) ile yeniden oluşturun.
@@ -192,7 +217,7 @@ medical_rag/
   README.md
 ```
 
-## Docker 🐳
+## Docker 
 
 Bu projeyi Docker ile paketleyip çalıştırabilirsiniz. Image, CUDA destekli bir runtime (nvidia/cuda:12.1) üzerinde Python 3.10 kullanır; FAISS CPU’da, jeneratör (Flan‑T5) ise GPU varsa otomatik olarak CUDA’yı kullanır (app/main.py içindeki torch.cuda.is_available kontrolü sayesinde).
 
@@ -200,13 +225,13 @@ Bu projeyi Docker ile paketleyip çalıştırabilirsiniz. Image, CUDA destekli b
 - Docker kurulu olmalı
 - GPU kullanacaksanız: NVIDIA sürücüleri + nvidia-container-toolkit
 
-1) Build
+### 1) Build
 
 ```powershell
 docker build -t medical-rag .
 ```
 
-2) Çalıştır (CPU)
+### 2) Çalıştır (CPU)
 
 ```powershell
 docker run --rm -p 8080:8080 `
@@ -215,13 +240,13 @@ docker run --rm -p 8080:8080 `
   medical-rag
 ```
 
-3) Sağlık testi
+### 3) Sağlık testi
 
 ```powershell
 Invoke-WebRequest -Uri "http://localhost:8080/health" -Method GET
 ```
 
-4) Örnek QA çağrısı
+### 4) Örnek QA çağrısı
 
 ```powershell
 Invoke-WebRequest -Uri "http://localhost:8080/qa" `
@@ -230,7 +255,7 @@ Invoke-WebRequest -Uri "http://localhost:8080/qa" `
   -Body '{"question":"What are migraine triggers?","k":5}'
 ```
 
-5) GPU ile çalıştırma (opsiyonel)
+### 5) GPU ile çalıştırma (opsiyonel)
 
 ```powershell
 docker run --rm --gpus all -p 8080:8080 `
@@ -239,8 +264,13 @@ docker run --rm --gpus all -p 8080:8080 `
   medical-rag
 ```
 
-6) Streamlit UI(Opsiyonel)
-Repo’da bir Streamlit arayüzü varsa (streamlit_app.py), Docker’daki API’ya bağlanarak yerelden çalıştırabilirsiniz.
+### 6) API Testi
+
+Swagger UI üzerinden test etmek için:
+- Docker çalıştırmada: http://localhost:8080/docs
+
+### 7) Streamlit UI(Opsiyonel)
+Repo’da bir Streamlit arayüzü varsa (streamlit_app.py), Docker’daki API’ya bağlanarak yerelden çalıştırabilirsiniz. Docker içinde değil, kendi makinenizde çalıştırmalısınız.
 
 Önkoşul:
 ```powershell
